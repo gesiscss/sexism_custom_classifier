@@ -1,1 +1,1 @@
-# Custom Sexism Classifier
+# Binary Sexism Classifier
