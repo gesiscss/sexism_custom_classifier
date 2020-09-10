@@ -17,6 +17,9 @@ cont = Contractions(api_key="glove-twitter-100")
 #regex_tokenizer = RegexpTokenizer(r'\w+')
 porter_stemmer = PorterStemmer()
 
+def drop_nan_values(dataframe, column_name):
+    return dataframe.copy()[dataframe[column_name].notna()]
+
 def remove_new_lines(text):
     return " ".join(text.splitlines())
 
@@ -26,6 +29,9 @@ def remove_RT(text):
 def remove_repeating_chars(text):
     ''' happyyyyyy ==  happyy''' 
     return re.sub(r'(.)\1+', r'\1\1', text)
+
+def remove_URLs(text):
+    return re.sub(r"http\S+", "", text)
 
 def lower(text):
     return text.lower()

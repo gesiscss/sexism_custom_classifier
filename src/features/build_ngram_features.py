@@ -3,27 +3,31 @@
 
 # In[3]:
 
-from sklearn.feature_extraction.text import TfidfVectorizer
+#src module
 from src import utilities as u
+from src.features.build_features import BuildFeature
 
+#sklearn
+from sklearn.feature_extraction.text import TfidfVectorizer
 
-class BuildNgramFeature:
+class BuildNgramFeature(BuildFeature):
     '''Extracts Ngram Features'''
     
     def __init__(self, ngram_range=(1,1)):
         '''
         Args:
-        ngram_range (tuple (min_n, max_n)) = Ngram range for  features (e.g. (1, 2) means unigrams and bigrams)
+        ngram_range (tuple (min_n, max_n)) = Ngram range for  features (e.g. (1, 2) means that extracts unigrams and bigrams)
         '''
         self.tfidf_vectorizer = TfidfVectorizer(smooth_idf=True, use_idf=True, ngram_range=ngram_range)
+   
+    def get_feature_names(self):
+        '''Returns feature names'''
+        
+        return self.tfidf_vectorizer.get_feature_names()
     
-    def build_features(self, X_train, X_test):
-        self.tfidf_vectorizer.fit(X_train)
-        
-        X_train_features = self.tfidf_vectorizer.transform(X_train)
-        X_test_features = self.tfidf_vectorizer.transform(X_test)
-        
-        print('shape of train features : ' + str(X_train_features.shape))
-        print('shape of test features : ' + str(X_test_features.shape))
-        
-        return X_train_features, X_test_features
+    def fit(self, x, y=None):
+        self.tfidf_vectorizer.fit(x)
+        return self
+
+    def transform(self, texts):
+        return self.tfidf_vectorizer.transform(texts)

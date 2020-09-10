@@ -3,76 +3,36 @@
 
 # In[3]:
 
-from src import utilities as u
-from src.decorators import * 
-from src.data import preprocessing as pre
-
+from src.data.preprocessing import preprocess_sentiment as p_s
+from src.data.preprocessing import preprocess_ngram as p_ng
+from src.data.preprocessing import preprocess_type_dependency as p_td
+from src.data.preprocessing import preprocess_bert_doc_emb as p_bde
 import pandas as pd
 
-
 class MakeDataset:
-    '''Preprocesses and saves dataset.'''
+    '''Preporcesses data for sentiment, ngram, type dependency and Bert document embedding features.'''
+    def __init__(self):
+        self.data_full_path = '../../data/raw/all_data.csv'
+            
+    def read_data(self):
+        return pd.read_csv(self.data_full_path, delimiter='\t')
     
-    def __init__(self, df, project_path):
-        '''Constructs a MakeDataset.
-        Args:
-        df: pandas dataframe
-        project_path : Project path (e.g. C:/Users/username/Desktop/)
-        '''
-        self.df = df
-        self.project_path = project_path
-        self.processed_data_path = 'cc/data/processed/'
+    def preprocess_sentiment(self, data):
+        ps = p_s.PreprocessSentiment()
+        ps.data = data
+        ps.preprocess()
     
-    def save(self, file_name):
-        u.save(self.df, self.project_path + self.processed_data_path + file_name)
+    def preprocess_ngram(self, data):
+        png = p_ng.PreprocessNgram()
+        png.data = data
+        png.preprocess()
         
-    def clean_for_ngrams(self, text):
-        text = pre.clean_tweet(text)
-        text = pre.remove_RT(text)
-        text = pre.remove_new_lines(text)
-        text = pre.expand_contractions(text)
-        text = pre.remove_numbers(text)
-        text = pre.remove_punctuations(text)
-        text = pre.lower(text)
-        text = pre.remove_repeating_chars(text)
-        return text
-    
-    @execution_time_calculator
-    def make_dataset_for_sentiment(self):
-        '''Preprocesses and saves self.df'''
-        
-        #Drop NaN values
-        print('Dropping NaN values...')
-        self.df = self.df.copy()[self.df['text'].notna()]
-        
-        #Save
-        print('Saving preprocessed file...')
-        self.save('all_data_preprocessed_for_sentiment.csv')
-        
-        print('Finished.')
-    
-    @execution_time_calculator
-    def make_dataset_for_ngrams(self):
-        '''Preprocesses and saves self.df'''
-        
-        #Drop NaN values
-        print('Dropping NaN values...')
-        self.df = self.df.copy()[self.df['text'].notna()]
-        
-        #Clean for ngrams
-        print('Cleaning URLs, Mentions, Hastags, Reserved, Emojis, Smilies, Numbers, RT, new lines, contractions, punctuations, repeating chars...')
-        self.df['text'] = self.df.copy()['text'].apply(lambda x: self.clean_for_ngrams(str(x)))
-        
-        #Tokenize
-        print('Tokenizing...')
-        self.df.loc[:, 'text'] = self.df.copy()['text'].apply(lambda x: pre.tokenize(str(x)))
-        
-        #Stemming
-        print('Stemming...')
-        self.df.loc[:, 'text'] = self.df.copy()['text'].apply(lambda x: [pre.stem(str(word)) for word in x])
-        
-        #Save
-        print('Saving preprocessed file...')
-        self.save('all_data_preprocessed_for_ngrams.csv')
-        
-        print('Finished.')
+    def preprocess_type_dependency(self, data):
+        ptd = p_td.PreprocessTypeDependency()
+        ptd.data = data
+        ptd.preprocess()
+
+    def preprocess_bert_doc_emb(self, data):
+        pbde = p_bde.PreprocessBertDocEmb()
+        pbde.data = data
+        pbde.preprocess()
