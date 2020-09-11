@@ -41,9 +41,4 @@ class PreprocessSentiment(Preprocess):
         print('Removing URLs...')
         self.data[self.column_name_sentiment] = self.data[self.text_column].apply(lambda x: pre.remove_URLs(str(x)))
         
-        #Save
-        full_path=self.processed_data_path + self.file_name
-        u.save(self.data, full_path)
-        print('Saved preprocessed data: ' + full_path)
-        
-        print('\nFINISHED: Preprocessing sentiment finished.\n')
+        return self.data, self.file_name

@@ -57,9 +57,4 @@ class PreprocessNgram(Preprocess):
         print('Dropping NaN values...')
         self.data = pre.drop_nan_values(self.data, self.column_name_ngram)
         
-        #Save
-        full_path=self.processed_data_path + self.file_name
-        u.save(self.data, full_path)
-        print('Saved preprocessed data: ' + full_path)
-        
-        print('\nFINISHED: Preprocessing ngram finished.\n')
+        return self.data, self.file_name

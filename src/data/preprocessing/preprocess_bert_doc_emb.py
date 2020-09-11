@@ -36,9 +36,4 @@ class PreprocessBertDocEmb(Preprocess):
         #TODO
         print('\nSTARTED: Preprocessing bert document embeddings started.\n')
         
-        #Save
-        #full_path=self.processed_data_path + self.file_name
-        #u.save(self.data, full_path)
-        #print('Saved preprocessed data: ' + full_path)
-        
-        print('\nFINISHED: Preprocessing bert document embeddings finished.\n')
+        return self.data, self.file_name

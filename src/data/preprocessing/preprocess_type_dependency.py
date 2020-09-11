@@ -36,9 +36,4 @@ class PreprocessTypeDependency(Preprocess):
         #TODO
         print('\nSTARTED: Preprocessing type dependency started.\n')
         
-        #Save
-        #full_path=self.processed_data_path + self.file_name
-        #u.save(self.data, full_path)
-        #print('Saved preprocessed data: ' + full_path)
-        
-        print('\nFINISHED: Preprocessing type dependency finished.\n')
+        return self.data, self.file_name
