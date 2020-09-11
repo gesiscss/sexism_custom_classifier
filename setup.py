@@ -19,5 +19,7 @@ setup(
     #packages=find_packages(where='src'), 
     #py_modules=['src'],
     python_requires='>=3.7.8, <4',
-    install_requires=['pandas', 'scikit-learn', 'nltk', 'tweet-preprocessor', 'pycontractions'], 
+    install_requires=['pandas', 'scikit-learn', 'nltk', 'tweet-preprocessor', 'pycontractions'],
+    #entry_points={'console_scripts': ['fastep=fastentrypoints:main']},
+    scripts = ['scripts/loadpackages.sh'],
 )
