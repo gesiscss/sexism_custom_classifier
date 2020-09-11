@@ -14,8 +14,10 @@ setup(
     name='sexism_custom_classifier',  
     version='0.1',  
     author='Elif Alkac', 
-    package_dir={'': 'src'},  
-    packages=find_packages(where='src'), 
+    #package_dir={'': 'src'},  
+    packages=find_packages(),
+    #packages=find_packages(where='src'), 
+    #py_modules=['src'],
     python_requires='>=3.7.8, <4',
     install_requires=['pandas', 'scikit-learn', 'nltk', 'tweet-preprocessor', 'pycontractions'], 
 )
