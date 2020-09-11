@@ -16,6 +16,6 @@ setup(
     author='Elif Alkac', 
     package_dir={'': 'src'},  
     packages=find_packages(where='src'), 
-    python_requires='>=3.8.5, <4',
+    python_requires='>=3.7.8, <4',
     install_requires=['pandas', 'scikit-learn', 'nltk', 'tweet-preprocessor', 'pycontractions'], 
 )
