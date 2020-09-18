@@ -4,8 +4,8 @@
 # In[3]:
 
 #src module
+from src.enums import Feature
 from src.data.preprocessing.preprocess import Preprocess
-from src import utilities as u
 from src import utilities_preprocessing as pre
 from src.decorators import * 
 
@@ -13,17 +13,7 @@ class PreprocessNgram(Preprocess):
     '''Preporcesses data for ngram features.'''
     def __init__(self):
         super().__init__()
-        self.file_name = 'preprocessed_data_ngram.csv'
-        self.column_name_ngram = 'text_ngram'
 
-    @property
-    def file_name(self):
-        return self._file_name
- 
-    @file_name.setter
-    def file_name(self,value):
-        self._file_name = value
-        
     @property
     def data(self):
         return self._data 
@@ -32,7 +22,7 @@ class PreprocessNgram(Preprocess):
     def data(self,value):
         self._data = value
         
-    def clean_for_ngrams(self, text):
+    def clean(self, text):
         text = pre.clean_tweet(text)
         text = pre.remove_RT(text)
         text = pre.remove_new_lines(text)
@@ -46,15 +36,25 @@ class PreprocessNgram(Preprocess):
         return text
         
     def preprocess(self):
+        '''1.Preprocesses text column from self.data. 
+           2.Inserts preprocessed text as a new 'ngram' column
+           
+           Returns:
+           data: Data including preprocessed text.
+        '''
         print('\nSTARTED: Preprocessing ngram started.\n')
         
         print('Dropping NaN values...')
         self.data = pre.drop_nan_values(self.data, self.text_column)
         
         print('Cleaning URLs, Mentions, Hastags, Reserved, Emojis, Smilies, Numbers, RT, new lines, contractions, punctuations, repeating chars, tokenizing, stemming...')
-        self.data[self.column_name_ngram] = self.data.copy()[self.text_column].apply(lambda x: self.clean_for_ngrams(str(x)))
+        self.data[Feature.NGRAM] = self.data.copy()[self.text_column].apply(lambda x: self.clean(str(x)))
         
         print('Dropping NaN values...')
-        self.data = pre.drop_nan_values(self.data, self.column_name_ngram)
+        self.data = pre.drop_nan_values(self.data, Feature.NGRAM)
+        self.data = self.data.copy()[self.data[Feature.NGRAM] != '']
         
-        return self.data, self.file_name
+        self.data['sexist'] = self.data.copy()['sexist'].astype(int)
+        self.data = self.data.drop(['toxicity', 'tweet_id'], axis=1)
+        
+        return self.data

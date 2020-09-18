@@ -6,7 +6,6 @@
 
 import preprocessor as p
 from pycontractions import Contractions
-#from nltk.tokenize import RegexpTokenizer
 from nltk.stem import PorterStemmer
 import string
 import re
@@ -14,7 +13,6 @@ import re
 from nltk.tokenize import TweetTokenizer
 tweet_tokenizer = TweetTokenizer()
 cont = Contractions(api_key="glove-twitter-100")
-#regex_tokenizer = RegexpTokenizer(r'\w+')
 porter_stemmer = PorterStemmer()
 
 def drop_nan_values(dataframe, column_name):

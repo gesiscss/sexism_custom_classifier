@@ -3,6 +3,18 @@
 ## [Unreleased]
 
 
+## [0.0.5] - 2020-09-18
+
+### Added
+
+- Type dependency preprocessing and feature extraction
+- Training data domain preparation
+
+### Changed
+
+- Simplified notebooks.
+
+
 ## [0.0.4] - 2020-09-14
 
 ### Added

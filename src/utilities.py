@@ -7,8 +7,8 @@
 import os
 import pandas as pd
     
-def read(path, delimiter='\t'):
+def read_csv(path, delimiter='\t'):
     return pd.read_csv(path, delimiter=delimiter)
 
-def save(df, path, delimiter='\t'):
+def save_to_csv(df, path, delimiter='\t'):
     df.to_csv(path, index=False, sep=delimiter)

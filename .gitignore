@@ -8,3 +8,10 @@ __pycache__/
 
 # Data
 data/
+
+#Build
+sexism_custom_classifier.egg-info/
+build/
+dist/
+packages/
+stanford-corenlp-4.1.0/

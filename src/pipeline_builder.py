@@ -16,9 +16,9 @@ class PipelineBuilder():
         self.transformers = Transformers()
         self.modelbuilder = ModelBuilder()
 
-    def get_pipeline(self, model='', **features):
+    def get_pipeline(self, model, features):
         return Pipeline([
-            ("features", self.transformers.get_combined_features(**features)),
+            ("features", self.transformers.get_combined_features(features)),
             ('model', self.modelbuilder.get_model(model))
         ]) 
     
