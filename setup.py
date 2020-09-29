@@ -21,5 +21,5 @@ setup(
     python_requires='>=3.7.8, <4',
     install_requires=['pandas', 'scikit-learn', 'nltk', 'tweet-preprocessor', 'pycontractions'],
     #entry_points={'console_scripts': ['fastep=fastentrypoints:main']},
-    scripts = ['scripts/loadpackages.sh'],
+    scripts = ['loadpackages.sh'],
 )
