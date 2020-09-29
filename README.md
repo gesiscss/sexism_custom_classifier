@@ -1,3 +1,5 @@
+[![Binder](img/launch_binder.png)](https://notebooks.gesis.org/binder/v2/gh/gesiscss/sexism_custom_classifier/master?filepath=notebooks)
+
 # Sexism Custom Classifier
 
 ## Introduction
