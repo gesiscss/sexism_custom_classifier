@@ -1,33 +1,24 @@
-
-# coding: utf-8
-
-# In[ ]:
-
 #src module
 from src.transformers import Transformers
 from src.model_builder import ModelBuilder
 
 #sklearn
 from sklearn.pipeline import Pipeline
-from sklearn.metrics import classification_report
 
 class PipelineBuilder():
-    def __init__(self):
-        self.transformers = Transformers()
-        self.modelbuilder = ModelBuilder()
-
-    def get_pipeline(self, model, features):
-        return Pipeline([
-            ("features", self.transformers.get_combined_features(features)),
-            ('model', self.modelbuilder.get_model(model))
-        ]) 
+    def __init__(self, model, features):
+        self.model=model
+        self.features=features
+        self.transformers=Transformers()
+        self.model_builder=ModelBuilder()
     
-    def fit_and_predict(self, split_dict, pipeline):
-        for value in split_dict.values():
-            X_train, y_train = value['X_train'], value['y_train']
-            X_test, y_test = value['X_test'], value['y_test']
-
-            pipeline.fit(X_train, y_train)
-            y = pipeline.predict(X_test)
-            print(classification_report(y, y_test))
-
+    def build_pipeline_for_features(self):
+        return Pipeline([
+            ("features", self.transformers.get_combined_features(self.features)),
+        ]) 
+        return self
+    
+    def get_estimator(self):
+        return Pipeline([
+            ('model', self.model_builder.get_model(self.model)),
+        ])

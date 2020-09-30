@@ -14,7 +14,8 @@ def execution_time_calculator(function):
         result = function(*args, **kwargs)
         end_time = t.time() - start_time
         formatted_end_time = "{:.2f}".format((end_time / 60))
-        print('Time Elapsed in minutes for the function \'%s\' is %s' % (str(function.__name__), formatted_end_time))
+        print('FUNCTION: {} TIME ELAPSED : {}'.format(function.__name__, formatted_end_time))
+        #print('Time Elapsed in minutes for the function \'%s\' is %s' % (str(function.__name__), formatted_end_time))
         return result
     return wrapper
 

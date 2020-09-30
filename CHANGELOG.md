@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+- Feature : BERT document embeddings preprocessing and feature extraction
+- Model : CNN model
+- Experiments : Balance classes for training and testing
+- Experiments : Save the classification performance and the parameters of the model.
+
+## [0.0.6] - 2020-09-30
+
+### Added
+
+- Test data domain preparation
+- Feature selection for ngram and type dependency feature sets
+- The hyper-parameters tuning with GridSearchCV
+- Logistic Regression model
+
+### Changed
+
+- Training data domain preparation
+- Run pipeline
 
 ## [0.0.5] - 2020-09-18
 

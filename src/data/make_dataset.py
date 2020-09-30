@@ -1,11 +1,6 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
 #src module
 from src import utilities as u
-from src.enums import Feature
+from src.enums import *
 from src import factory
 
 from src.data.preprocessing.preprocess_sentiment import PreprocessSentiment
@@ -48,7 +43,7 @@ class MakeDataset:
             file_name = 'preprocessed_data_' + feature + '.csv'
             self.save_to_csv(df, file_name)
     
-    def read_preprocessed_data_by_feature(self, feature, read_only_feature_column=False):
+    def read_preprocessed_data_by_feature(self, feature):
         '''Gets preprocessed data for each feature set.
         
         Args:
@@ -58,14 +53,11 @@ class MakeDataset:
         df (pandas.DataFrame): Preprocessed data.
     
         Example:
-            >>> read_preprocessed_data(Feature.SENTIMENT, read_only_feature_column=False)
-            pandas.DataFrame Columns ['_id', 'dataset', 'of_id', 'sexist', 'text', 'sentiment']
-            
-            >>> read_preprocessed_data_by_feature(Feature.SENTIMENT, read_only_feature_column=True)
-            pandas.DataFrame Columns ['sentiment']
+            >>> read_preprocessed_data(Feature.SENTIMENT)
+            pandas.DataFrame Columns ['_id', 'dataset', 'of_id', 'sexist', 'text', 'sentiment'
         '''
-        path='../../data/processed/preprocessed_data_' + feature + '.csv'
-        return u.read_csv(path) if read_only_feature_column == False else u.read_csv(path)[feature]
+        path='/Users/ezgidaldal/sexism_custom_classifier/data/processed/preprocessed_data_' + feature + '.csv'
+        return u.read_csv(path)
         
     def read_preprocessed_data(self, features):
         '''Gets preprocessed data for each feature set.
@@ -80,10 +72,14 @@ class MakeDataset:
             >>> read_preprocessed_data(features=[Feature.SENTIMENT, Feature.NGRAM])
             pandas.DataFrame Columns ['_id', 'dataset', 'of_id', 'sexist', 'text', 'sentiment', 'ngram']
         '''
-        df = self.read_preprocessed_data_by_feature(features[0], read_only_feature_column=False)
-        
-        for i in range(1, len(features)):
-            feature_df = self.read_preprocessed_data_by_feature(features[i], read_only_feature_column=True)
-            df = pd.concat([df, feature_df], axis=1)
+        df=pd.DataFrame()
+        for feature in features:
+            feature_df = self.read_preprocessed_data_by_feature(feature)
+            if len(df) > 0:
+                df = pd.merge(df, feature_df, how='inner', on=[DataColumn.ID, DataColumn.ADVERSARIAL,
+                                                               DataColumn.DATASET, DataColumn.TEXT,
+                                                               DataColumn.LABEL])
+            else:
+                df = pd.concat([df, feature_df], axis=1)
         
         return df

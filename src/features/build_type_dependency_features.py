@@ -1,34 +1,51 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
 #src module
-from src.features.build_features import BuildFeature
+from src.decorators import *
 
 #sklearn
+from sklearn.base import BaseEstimator
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 #other
 from nltk.parse.corenlp import CoreNLPDependencyParser, CoreNLPServer
 import os
+import time
+import urllib
+import inspect
+from collections import defaultdict
 
-class BuildTypeDependencyFeature(BuildFeature):
+class BuildTypeDependencyFeature(BaseEstimator):
     '''Extracts Type Dependency Features'''
     
-    def __init__(self, ngram_range=(1,3)):
+    def __init__(self, ngram_range=(1,3), model_path=None):
         '''
         Args:
         ngram_range (tuple (min_n, max_n)) = Ngram range for  features (e.g. (1, 2) means that extracts unigrams and bigrams)
         '''
         self.ngram_range=ngram_range
+        self.model_path=model_path
         self.tfidf_vectorizer=None
-        self.model_path=None
+    
+    def start_CoreNLPServer(self):
+        url='http://localhost:9000'
+        status_code=0
+        try:
+            status_code = urllib.request.urlopen(url).getcode()
+        except:
+            pass
+        
+        if status_code != 200:
+            print('CoreNLPServer is starting {}'.format(url))
+            try:
+                os.environ['CLASSPATH'] = self.model_path 
+                server=CoreNLPServer(port=9000)
+                server.start()
+                
+                status_code = urllib.request.urlopen(url).getcode()
+                print('server started {}'.format(status_code))
+                
+            except Exception as e:
+                print(url, e)
+                raise Exception(e)
    
     def get_combined_feature(self, parser, text):
         ''' 
@@ -50,24 +67,24 @@ class BuildTypeDependencyFeature(BuildFeature):
             triples = parse.triples()
             features=''
             for governor, dep, dependent in triples:
-                #TODO: Decide which dependency relationships to include. 
-                #Available relationships : (http://universaldependencies.org/docsv1/u/dep/index.html)
-                if str(dep) not in ['punct', 'dep', 'root']:
+                if str(dep) not in ['punct']:
                     feature = governor[0] + '_' +  dep + '_' + dependent[0] + ' '
                     features = features + feature
             return features
         except Exception as e:
-            print(text)
-            print(e)
-        
-    def get_type_dependency_relationships(self,data):
-        os.environ['CLASSPATH'] = self.model_path
+            print(text, e)
+            raise Exception(e)
+                      
+    @execution_time_calculator
+    def get_type_dependency_relationships(self, data):
         '''Gets type dependency relationships.'''
-        #NOTE: If CoreNLPServer does not used, CoreNLPDependencyParser throws ConnectionError exeption.
-        with CoreNLPServer(port=9000) as server:
-            parser = CoreNLPDependencyParser(url='http://localhost:9000')
+        try:
+            self.start_CoreNLPServer()
+            parser=CoreNLPDependencyParser(url='http://localhost:9000')
             return [self.get_combined_feature(parser, text) for text in data]
-        
+        except Exception as e:
+            raise Exception(e)
+            
     def fit(self, x, y=None):
         x = self.get_type_dependency_relationships(x)
         self.tfidf_vectorizer = TfidfVectorizer(smooth_idf=True, use_idf=True, ngram_range=self.ngram_range)

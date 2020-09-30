@@ -1,12 +1,11 @@
-#!/usr/bin/env python
-# coding: utf-8
+#sklearn
+from sklearn.base import BaseEstimator
 
-# In[3]:
+#other
+import inspect
+from collections import defaultdict
 
-#src module
-from src.features.build_features import BuildFeature
-
-class BuildBERTDocumentEmbeddingsFeature(BuildFeature):
+class BuildBERTDocumentEmbeddingsFeature(BaseEstimator):
     '''Extracts BERT document embeddings Features'''
     
     def fit(self, x, y=None):

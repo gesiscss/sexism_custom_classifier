@@ -1,20 +1,18 @@
-#!/usr/bin/env python
-# coding: utf-8
+#sklearn
+from sklearn.base import BaseEstimator
 
-# In[3]:
-
-#src module
-from src.features.build_features import BuildFeature
-
-#nltk
+#other
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import inspect
+from collections import defaultdict
 
-class BuildSentimentFeature(BuildFeature):
+class BuildSentimentFeature(BaseEstimator):
     '''Extracts sentiment features by using VADER sentiment analysis model.'''
-    def __init__(self):
+    
+    def __init__(self, score_names=['neg', 'neu', 'pos', 'compound']):
         self.sid = SentimentIntensityAnalyzer()
-        self.score_names=['neg', 'neu', 'pos', 'compound']
-        
+        self.score_names=score_names
+    
     def get_polarity_scores(self, text):
         '''Retrieves combineed polarity scores of text (neutral and compoound scores). 
     
