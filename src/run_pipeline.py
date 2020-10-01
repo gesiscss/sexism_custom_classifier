@@ -43,7 +43,12 @@ class RunPipeline():
         
     @execution_time_calculator
     def run(self):
-        '''Runs the pipeline.'''
+        '''Runs the pipeline.
+        #Step 1. Read preprocessed data for the given features
+        #Step 2. Prepare data splits for training and test domains
+        #Step 3. For each split, extract features of training and test set
+        #Step 4. For each split, fit and predict with sklearn GridSearchCV
+        '''
         #Step 1. Read preprocessed data
         md=MakeDataset()
         data=md.read_preprocessed_data(self.features)

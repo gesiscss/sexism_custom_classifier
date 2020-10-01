@@ -155,9 +155,14 @@ class PrepareDataDomain:
         return data_dict
     
     def get_split_data(self, data, train_domain_names, test_domain_names, train_modified=False, test_modified=False):
-        ''' '''
+        '''Gets splits for training and test data domains. 
+        #Step 1. Find the symmetric difference and the intersection of training and test domain names
+        #Step 2. Get the symmetric difference data that only TRAIN has
+        #Step 3. Get the symmetric difference data that only TEST has
+        #Step 4. Get data that the intersection of training and test domains  
+        #Step 5. Append the symmetric difference data to the intersection data
+        '''
         
-        #TODO  test case > train C  , test S   no intersection
         original_data = self.get_original_data(data)
         adversarial_examples = self.get_adversarial_examples(data)
         
