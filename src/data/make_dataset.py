@@ -159,8 +159,7 @@ class MakeDataset:
         
         for domain in domain_names:
             X_domain = self.get_data_by_domain_name(original_data, domain)
-            #print('\n X_domain dataset \n {}'.format(X_domain['dataset'].value_counts()))
-            #n_splits=1, test_size=0.3, random_state=None
+            
             X_train_s, X_test_s=self.get_splits(X_domain)
             
             if train_modified:
@@ -185,8 +184,6 @@ class MakeDataset:
         X_train, X_test=pd.DataFrame(), pd.DataFrame()
         
         original_data = self.get_original_data(data)
-        #print('original_data {}'.format(len(original_data)))
-        #print('\n original_data dataset \n {}'.format(original_data['dataset'].value_counts()))
         adversarial_examples = self.get_adversarial_examples(data)
         
         #Step 1. Find the symmetric difference and the intersection of training and test domain names
@@ -196,20 +193,20 @@ class MakeDataset:
     
         #Step 2. Get the symmetric difference data that only TRAIN has
         X_train_sym_diff=self.get_symmetric_difference_data(original_data, domain_names_only_train, modified=train_modified, adversarial_examples=adversarial_examples, sample_proportion=0.5)
-        #print('X_train_sym_diff {}'.format(X_train_sym_diff))
+        
         #Step 3. Get the symmetric difference data that only TEST has
         X_test_sym_diff=self.get_symmetric_difference_data(original_data, domain_names_only_test, modified=test_modified, adversarial_examples=adversarial_examples, sample_proportion=1)
-        #print('X_test_sym_diff {}'.format(X_test_sym_diff))
+        
         #Step 4. Get data that the intersection of training and test domains   
         X_train_intersection, X_test_intersection=self.get_intersection_data_domains(original_data, domain_names_intersection, train_modified=train_modified, test_modified=test_modified, adversarial_examples=adversarial_examples)
-        #print('\n X_train_intersection dataset \n {}'.format(X_train_intersection['dataset'].value_counts()))
+        
         #Step 5. Append the symmetric difference data to the intersection data
         X_train=X_train.append(X_train_sym_diff, ignore_index=True)
         X_train=X_train.append(X_train_intersection, ignore_index=True)
         
         X_test=X_test.append(X_test_sym_diff, ignore_index=True)
         X_test=X_test.append(X_test_intersection, ignore_index=True)
-        #print('\n X_train dataset \n {}'.format(X_train['dataset'].value_counts()))
+        
         return X_train, X_test
         
     def downsample(self, df):
