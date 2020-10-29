@@ -1,5 +1,6 @@
 #src module
 from src.decorators import *
+from src.utilities import Preprocessing
 
 #sklearn
 from sklearn.base import BaseEstimator
@@ -10,8 +11,6 @@ from nltk.parse.corenlp import CoreNLPDependencyParser, CoreNLPServer
 import os
 import time
 import urllib
-import inspect
-from collections import defaultdict
 
 class BuildTypeDependencyFeature(BaseEstimator):
     '''Extracts Type Dependency Features'''
@@ -23,7 +22,7 @@ class BuildTypeDependencyFeature(BaseEstimator):
         '''
         self.ngram_range=ngram_range
         self.model_path=model_path
-        self.tfidf_vectorizer=None
+        self.vectorizer=None
     
     def start_CoreNLPServer(self):
         url='http://localhost:9000'
@@ -46,7 +45,12 @@ class BuildTypeDependencyFeature(BaseEstimator):
             except Exception as e:
                 print(url, e)
                 raise Exception(e)
-   
+    
+    def process(self, text):
+        upre=Preprocessing()
+        text=upre.lower_text(text)
+        return upre.stem_porter(text)
+        
     def get_combined_feature(self, parser, text):
         ''' 
         Gets combines features.
@@ -68,14 +72,16 @@ class BuildTypeDependencyFeature(BaseEstimator):
             features=''
             for governor, dep, dependent in triples:
                 if str(dep) not in ['punct']:
-                    feature = governor[0] + '_' +  dep + '_' + dependent[0] + ' '
+                    processed_governor=self.process(governor[0])
+                    processed_dependent=self.process(dependent[0])
+                    feature = processed_governor + '_' +  dep + '_' + processed_dependent + ' '
                     features = features + feature
             return features
         except Exception as e:
             print(text, e)
             raise Exception(e)
-                      
-    @execution_time_calculator
+
+    #@execution_time_calculator
     def get_type_dependency_relationships(self, data):
         '''Gets type dependency relationships.'''
         try:
@@ -87,10 +93,9 @@ class BuildTypeDependencyFeature(BaseEstimator):
             
     def fit(self, x, y=None):
         x = self.get_type_dependency_relationships(x)
-        self.tfidf_vectorizer = TfidfVectorizer(smooth_idf=True, use_idf=True, ngram_range=self.ngram_range)
-        self.tfidf_vectorizer.fit(x)
+        self.vectorizer = TfidfVectorizer(ngram_range=self.ngram_range).fit(x)
         return self
 
     def transform(self, texts):
         texts = self.get_type_dependency_relationships(texts)
-        return self.tfidf_vectorizer.transform(texts)
+        return self.vectorizer.transform(texts)

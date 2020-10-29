@@ -1,60 +1,46 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
 #src module
-from src.enums import Feature
-from src.data.preprocessing.preprocess import Preprocess
-from src import utilities_preprocessing as pre
-from src.decorators import * 
+from src.utilities import Preprocessing
 
-class PreprocessNgram(Preprocess):
+#sklearn
+from sklearn.base import BaseEstimator
+
+class PreprocessNgram(BaseEstimator):
     '''Preporcesses data for ngram features.'''
-    def __init__(self):
-        super().__init__()
-
-    @property
-    def data(self):
-        return self._data 
     
-    @data.setter
-    def data(self,value):
-        self._data = value
+    def preprocess(self, text):
+        try:
+            upre=Preprocessing()
+            
+            text=upre.remove_new_lines(text)
+            text=upre.replace_whitespace_with_single_space(text)
+            text=upre.remove_URLs(text)
+            text=upre.remove_usernames(text)
+            text=upre.remove_hashtags(text)
+            text=upre.clean_tweet(text)
+            
+            text=text.replace('-', ' ')
+            text=text.replace('.', ' ')
+            text=upre.expand_contractions(text)
         
-    def clean(self, text):
-        text = pre.clean_tweet(text)
-        text = pre.remove_RT(text)
-        text = pre.remove_new_lines(text)
-        text = pre.expand_contractions(text)
-        text = pre.remove_numbers(text)
-        text = pre.remove_punctuations(text)
-        text = pre.lower(text)
-        text = pre.remove_repeating_chars(text)
-        text = pre.tokenize(text)
-        text = [pre.stem(str(word)) for word in text]
-        return text
-        
-    def preprocess(self):
-        '''1.Preprocesses text column from self.data. 
-           2.Inserts preprocessed text as a new 'ngram' column
-           
-           Returns:
-           data: Data including preprocessed text.
-        '''
-        print('\nSTARTED: Preprocessing ngram started.\n')
-        
-        print('Dropping NaN values...')
-        self.data = pre.drop_nan_values(self.data, self.text_column)
-        
-        print('Cleaning URLs, Mentions, Hastags, Reserved, Emojis, Smilies, Numbers, RT, new lines, contractions, punctuations, repeating chars, tokenizing, stemming...')
-        self.data[Feature.NGRAM] = self.data.copy()[self.text_column].apply(lambda x: self.clean(str(x)))
-        
-        print('Dropping NaN values...')
-        self.data = pre.drop_nan_values(self.data, Feature.NGRAM)
-        self.data = self.data.copy()[self.data[Feature.NGRAM] != '']
-        
-        self.data['sexist'] = self.data.copy()['sexist'].astype(int)
-        self.data = self.data.drop(['toxicity', 'tweet_id'], axis=1)
-        
-        return self.data
+            tokens=upre.tokenize_tweettokenizer(text)
+    
+            tokens=[upre.lower_text(item) for item in tokens]
+            tokens=[upre.compress_words(item) for item in tokens]
+            tokens=[upre.remove_punctuations(item) for item in tokens]
+            tokens=[upre.remove_numbers(item) for item in tokens]
+            
+            tokens=[item.replace(' ', '') for item in tokens]
+            tokens=[item for item in tokens if item != '']
+            tokens=[item for item in tokens if item != 'rt']
+            
+            stems = [ upre.stem_porter(str(item)) for item in tokens]
+            return list(stems)
+        except Exception as e:
+            print('text> {}'.format(text))
+            raise Exception(e)
+    
+    def fit(self, raw_docs, y=None):
+        return self
+
+    def transform(self, raw_docs):
+        return [self.preprocess(raw_doc) for raw_doc in raw_docs]

@@ -4,8 +4,17 @@
 
 - Feature : BERT document embeddings preprocessing and feature extraction
 - Model : CNN model
-- Experiments : Balance classes for training and testing
 - Experiments : Save the classification performance and the parameters of the model.
+
+## [0.0.7] - 2020-10-29
+
+### Added
+
+- Experiments : Balance classes for training and testing (with downsampling)
+
+### Changed
+
+- Run pipeline
 
 ## [0.0.6] - 2020-09-30
 

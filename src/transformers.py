@@ -1,11 +1,16 @@
 #src module
 from src.enums import Feature
-from src import factory
-from src.item_selector import ItemSelector
+
 from src.features.build_sentiment_features import BuildSentimentFeature
 from src.features.build_ngram_features import BuildNgramFeature
 from src.features.build_type_dependency_features import BuildTypeDependencyFeature
 from src.features.build_bert_doc_emb_features import BuildBERTDocumentEmbeddingsFeature
+
+from src.data.preprocessing.preprocess_ngram import  PreprocessNgram
+from src.data.preprocessing.preprocess_sentiment import PreprocessSentiment
+from src.data.preprocessing.preprocess_type_dependency import PreprocessTypeDependency
+from src.data.preprocessing.preprocess_bert_doc_emb import PreprocessBertDocEmb
+
 from src.features.select_features import SelectFeatures
 
 #sklearn
@@ -14,56 +19,44 @@ from sklearn.pipeline import FeatureUnion
  
 class Transformers():
     
-    def __init__(self):
-        self.build_feature_objects={
-                Feature.SENTIMENT: BuildSentimentFeature,
-                Feature.NGRAM: BuildNgramFeature,
-                Feature.TYPEDEPENDENCY: BuildTypeDependencyFeature,
-                Feature.BERTDOCEMB: BuildBERTDocumentEmbeddingsFeature
-        }
-        
-    def get_feature_builder(self, feature, params):
-        feature_builder=factory.get_object(self.build_feature_objects, feature)
-        feature_builder.set_params(**params)
-        return feature_builder
-    
-    def get_transformer_sentiment(self, params):
+    def get_transformer_sentiment(self):
         return (Feature.SENTIMENT, Pipeline
                 ([
-                    ('selector', ItemSelector(key=Feature.SENTIMENT)),
-                    ('features', self.get_feature_builder(Feature.SENTIMENT, params)),
+                    ('preprocessing', PreprocessSentiment()),
+                    ('feature_extraction', BuildSentimentFeature()),
                 ])
                )
 
-    def get_transformer_ngram(self, params):
+    def get_transformer_ngram(self):
         return (Feature.NGRAM, Pipeline
                 ([
-                    ('selector', ItemSelector(key=Feature.NGRAM)),
-                    ('features', self.get_feature_builder(Feature.NGRAM, params)),
-                    ('feature_selection', SelectFeatures()),
-                ])
-               )
-    def get_transformer_type_dependency(self, params):
-        return (Feature.TYPEDEPENDENCY, Pipeline
-                ([
-                    ('selector', ItemSelector(key=Feature.TYPEDEPENDENCY)),
-                    ('features', self.get_feature_builder(Feature.TYPEDEPENDENCY, params)),
+                    ('preprocessing', PreprocessNgram()),
+                    ('feature_extraction', BuildNgramFeature()),
                     ('feature_selection', SelectFeatures()),
                 ])
                )
     
-    def get_transformer_bert_doc_emb(self, params):
+    def get_transformer_type_dependency(self):
+        return (Feature.TYPEDEPENDENCY, Pipeline
+                ([
+                    ('preprocessing', PreprocessTypeDependency()),
+                    ('feature_extraction', BuildTypeDependencyFeature()),
+                    ('feature_selection', SelectFeatures()),
+                ])
+               )
+    
+    def get_transformer_bert_doc_emb(self):
         return (Feature.BERTDOCEMB, Pipeline
                 ([
-                    ('selector', ItemSelector(key=Feature.BERTDOCEMB)),
-                    ('features', self.get_feature_builder(Feature.BERTDOCEMB, params)),
+                    ('preprocessing', PreprocessBertDocEmb()),
+                    ('feature_extraction', BuildBERTDocumentEmbeddingsFeature()),
                 ])
                )
 
-    def get_transformer(self, feature, params):
+    def get_transformer(self, feature):
         method_name = 'get_transformer_' + feature
         method = getattr(self, method_name)
-        return method(params)
+        return method()
     
     def get_transformer_list(self, features):
         '''Gets transformer list. 
@@ -72,12 +65,12 @@ class Transformers():
         features (list): Features that will be added to the pipeline
         
         Example:
-        >>>features = { Feature.NGRAM: {'ngram_range':(1,1)}, }
+        >>>features = [Feature.SENTIMENT, Feature.NGRAM, ]
         >>>get_transformer_list(features)
         '''
         transformer_list=[]
-        for key, value in features.items():
-            transformer_list.append(self.get_transformer(key, value))
+        for feature in features:
+            transformer_list.append(self.get_transformer(feature))
         return transformer_list
 
     def get_combined_features(self, features):

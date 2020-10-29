@@ -1,30 +1,22 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[3]:
-
 #src module
-from src.enums import Feature
-from src.data.preprocessing.preprocess import Preprocess
-from src import utilities as u
-from src import utilities_preprocessing as pre
-from src.decorators import * 
+from src.utilities import Preprocessing
 
-class PreprocessBertDocEmb(Preprocess):
+#sklearn
+from sklearn.base import BaseEstimator
+
+class PreprocessBertDocEmb(BaseEstimator):
     '''Preporcesses data for BERT document embedding features.'''
-    def __init__(self):
-        super().__init__()
-
-    @property
-    def data(self):
-        return self._data 
+    def preprocess(self, text):
+        try:
+            upre=Preprocessing()
+            # TODO
+            return text
+        except Exception as e:
+            print('text> {}'.format(text))
+            raise Exception(e)
     
-    @data.setter
-    def data(self,value):
-        self._data = value
-        
-    def preprocess(self):
-        #TODO
-        print('\nSTARTED: Preprocessing bert document embeddings started.\n')
-        
-        return self.data
+    def fit(self, raw_docs, y=None):
+        return self
+
+    def transform(self, raw_docs):
+        return [self.preprocess(raw_doc) for raw_doc in raw_docs]
