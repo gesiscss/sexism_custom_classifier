@@ -1,17 +1,17 @@
 #src module
 from src.enums import Feature
 
-from src.features.build_sentiment_features import BuildSentimentFeature
-from src.features.build_ngram_features import BuildNgramFeature
-from src.features.build_type_dependency_features import BuildTypeDependencyFeature
-from src.features.build_bert_doc_emb_features import BuildBERTDocumentEmbeddingsFeature
+from src.feature_extraction.build_sentiment_features import BuildSentimentFeature
+from src.feature_extraction.build_ngram_features import BuildNgramFeature
+from src.feature_extraction.build_type_dependency_features import BuildTypeDependencyFeature
+from src.feature_extraction.build_bert_doc_emb_features import BuildBERTDocumentEmbeddingsFeature
 
 from src.data.preprocessing.preprocess_ngram import  PreprocessNgram
 from src.data.preprocessing.preprocess_sentiment import PreprocessSentiment
 from src.data.preprocessing.preprocess_type_dependency import PreprocessTypeDependency
 from src.data.preprocessing.preprocess_bert_doc_emb import PreprocessBertDocEmb
 
-from src.features.select_features import SelectFeatures
+from src.feature_selection.select_features import SelectFeatures
 
 #sklearn
 from sklearn.pipeline import Pipeline

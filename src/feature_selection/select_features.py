@@ -1,5 +1,5 @@
 #src module
-from src.model_builder import ModelBuilder
+from src.models.model_builder import ModelBuilder
 
 #sklearn
 from sklearn.base import BaseEstimator

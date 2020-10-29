@@ -1,6 +1,6 @@
 #src module
 from src.transformers import Transformers
-from src.model_builder import ModelBuilder
+from src.models.model_builder import ModelBuilder
 
 #sklearn
 from sklearn.pipeline import Pipeline
@@ -11,7 +11,6 @@ class PipelineBuilder():
         self.features=features
         
     def build_pipeline(self):
-        #print(self.model)
         return Pipeline([
             ("features", Transformers().get_combined_features(self.features)),
             ('model', ModelBuilder().get_model(self.model)),
