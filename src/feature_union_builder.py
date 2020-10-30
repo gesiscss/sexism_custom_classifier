@@ -18,7 +18,7 @@ from src.feature_selection.select_features import SelectFeatures
 from sklearn.pipeline import Pipeline
 from sklearn.pipeline import FeatureUnion
  
-class Transformers():
+class FeatureUnionBuilder():
     
     def get_transformer_sentiment(self):
         return (Feature.SENTIMENT, Pipeline
@@ -73,5 +73,5 @@ class Transformers():
             transformer_list.append(self.get_transformer(feature))
         return transformer_list
 
-    def get_combined_features(self, features):
+    def get_feature_union(self, features):
         return FeatureUnion(transformer_list=self.get_transformer_list(features))

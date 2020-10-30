@@ -1,5 +1,5 @@
 #src module
-from src.transformers import Transformers
+from src.feature_union_builder import FeatureUnionBuilder
 from src.models.model_builder import ModelBuilder
 
 #sklearn
@@ -12,6 +12,6 @@ class PipelineBuilder():
         
     def build_pipeline(self):
         return Pipeline([
-            ("features", Transformers().get_combined_features(self.features)),
+            ("features", FeatureUnionBuilder().get_feature_union(self.features)),
             ('model', ModelBuilder().get_model(self.model)),
         ])
