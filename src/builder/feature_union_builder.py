@@ -12,7 +12,7 @@ from src.data.preprocessing.preprocess_sentiment import PreprocessSentiment
 from src.data.preprocessing.preprocess_type_dependency import PreprocessTypeDependency
 from src.data.preprocessing.preprocess_bert_doc_emb import PreprocessBertDocEmb
 
-from src.feature_selection.select_features import SelectFeatures
+from src.feature_selection.selector_rfecv import SelectorRFECV
 
 #sklearn
 from sklearn.pipeline import Pipeline
@@ -33,7 +33,7 @@ class FeatureUnionBuilder():
                 ([
                     ('preprocessing', PreprocessNgram()),
                     ('feature_extraction', BuildNgramFeature()),
-                    ('feature_selection', SelectFeatures()),
+                    ('feature_selection', SelectorRFECV()),
                 ])
                )
     
@@ -42,7 +42,7 @@ class FeatureUnionBuilder():
                 ([
                     ('preprocessing', PreprocessTypeDependency()),
                     ('feature_extraction', BuildTypeDependencyFeature()),
-                    ('feature_selection', SelectFeatures()),
+                    ('feature_selection', SelectorRFECV()),
                 ])
                )
     

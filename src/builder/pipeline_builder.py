@@ -1,6 +1,6 @@
 #src module
-from src.feature_union_builder import FeatureUnionBuilder
-from src.models.model_builder import ModelBuilder
+from src.builder.feature_union_builder import FeatureUnionBuilder
+from src.builder.model_builder import ModelBuilder
 
 #sklearn
 from sklearn.pipeline import Pipeline

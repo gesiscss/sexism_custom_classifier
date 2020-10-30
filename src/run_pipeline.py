@@ -1,6 +1,6 @@
 #src module
 from src.data.make_dataset import MakeDataset
-from src.pipeline_builder import PipelineBuilder
+from src.builder.pipeline_builder import PipelineBuilder
 from src.decorators import *
 
 #sklearn

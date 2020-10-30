@@ -1,9 +1,9 @@
 #src module
 from src.utilities import get_object
 from src.enums import Model
-from src.models.logit import Logit
-from src.models.svm import SVM
-from src.models.cnn import CNN
+from src.model.logit import Logit
+from src.model.svm import SVM
+from src.model.cnn import CNN
 
 #sklearn
 from sklearn.base import BaseEstimator

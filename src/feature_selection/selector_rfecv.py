@@ -1,15 +1,11 @@
 #src module
-from src.models.model_builder import ModelBuilder
+from src.builder.model_builder import ModelBuilder
 
 #sklearn
 from sklearn.base import BaseEstimator
 from sklearn.feature_selection import RFECV
 
-
-from sklearn.svm import SVC
-from sklearn.linear_model import LogisticRegression
-
-class SelectFeatures(BaseEstimator):
+class SelectorRFECV(BaseEstimator):
     
     def __init__(self, model=None):
         self.model=model
