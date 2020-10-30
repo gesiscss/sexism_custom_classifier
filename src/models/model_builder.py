@@ -9,16 +9,16 @@ from sklearn.base import BaseEstimator
 
 class ModelBuilder(BaseEstimator):
     '''Builds model.'''
-    def get_logistic_regression(self):
-        return Logit()
-    
-    def get_svm(self):
-        return SVM()
-    
-    def get_cnn(self):
-        return CNN()
+    def __init__(self):
+        self.build_model_objects={
+                Model.LR: Logit,
+                Model.SVM: SVM,
+                Model.CNN: CNN,
+        }
+        
+    def get_object(self, objects, name: object = None) -> object:
+        '''Factory'''
+        return objects[name]()
 
     def get_model(self, model_name):
-        method_name = 'get_' + model_name
-        method = getattr(self, method_name)
-        return method()
+        return self.get_object(self.build_model_objects, model_name)
