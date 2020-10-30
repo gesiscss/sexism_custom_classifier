@@ -7,6 +7,13 @@ def read_csv(path, delimiter='\t'):
 def save_to_csv(df, path, delimiter='\t'):
     df.to_csv(path, index=False, sep=delimiter)
     
+def get_object(objects, name: object = None) -> object:
+    '''Factory'''
+    return objects[name]()
+
+def get_attr(object_, method_name):
+    return getattr(object_, method_name)()
+    
 #######################################################
 import spacy
 

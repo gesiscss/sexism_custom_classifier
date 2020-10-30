@@ -1,4 +1,5 @@
 #src module
+from src.utilities import get_object
 from src.enums import Model
 from src.models.logit import Logit
 from src.models.svm import SVM
@@ -16,9 +17,5 @@ class ModelBuilder(BaseEstimator):
                 Model.CNN: CNN,
         }
         
-    def get_object(self, objects, name: object = None) -> object:
-        '''Factory'''
-        return objects[name]()
-
     def get_model(self, model_name):
-        return self.get_object(self.build_model_objects, model_name)
+        return get_object(self.build_model_objects, model_name)

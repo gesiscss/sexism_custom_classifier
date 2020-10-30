@@ -1,5 +1,6 @@
 #src module
 from src.enums import Feature
+from src.utilities import get_attr
 
 from src.feature_extraction.build_sentiment_features import BuildSentimentFeature
 from src.feature_extraction.build_ngram_features import BuildNgramFeature
@@ -55,8 +56,7 @@ class Transformers():
 
     def get_transformer(self, feature):
         method_name = 'get_transformer_' + feature
-        method = getattr(self, method_name)
-        return method()
+        return get_attr(self, method_name)
     
     def get_transformer_list(self, features):
         '''Gets transformer list. 
