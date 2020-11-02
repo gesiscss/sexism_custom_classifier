@@ -11,25 +11,14 @@ class PreprocessSentiment(BaseEstimator):
             upre=Preprocessing()
             
             text = upre.remove_new_lines(text)
-            text = upre.replace_whitespace_with_single_space(text)
-        
+            text = upre.remove_URLs(text)
+            
             text = upre.remove_usernames(text)
             text = upre.replace_whitespace_with_single_space(text)
         
             text = upre.remove_RT(text)
             text = upre.replace_whitespace_with_single_space(text)
         
-            text = upre.remove_URLs(text)
-            
-            text=upre.remove_new_lines(text)
-            text=upre.replace_whitespace_with_single_space(text)
-            text=upre.remove_URLs(text)
-            
-            text=upre.remove_usernames(text)
-            text=upre.replace_whitespace_with_single_space(text)
-            
-            text = upre.remove_RT(text)
-            text = upre.replace_whitespace_with_single_space(text)
             return text
         except Exception as e:
             print('text> {}'.format(text))
