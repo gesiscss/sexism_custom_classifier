@@ -46,8 +46,8 @@ class MakeDataset:
         data=data[~data.sexist.isnull()]
         data=data[data.text.notna()]
         data=data[data.text != '']
-        data['text']=[self.preprocess(raw_doc) for raw_doc in data['text']]
-        data=data[data.text != '']
+        data['preprocessed']=[self.preprocess(raw_doc) for raw_doc in data['text']]
+        data=data[data.preprocessed != '']
         
         data['sexist'] = data.copy()['sexist'].astype(int)
         data=pd.DataFrame(data[['_id', 'sexist', 'text', 'of_id','dataset']])
