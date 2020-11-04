@@ -4,7 +4,7 @@ from src.utilities import Preprocessing
 #sklearn
 from sklearn.base import BaseEstimator
 
-class PreprocessBertDocEmb(BaseEstimator):
+class PreprocessBert(BaseEstimator):
     '''Preporcesses data for BERT document embedding features.'''
     def preprocess(self, text):
         try:
