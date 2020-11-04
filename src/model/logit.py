@@ -16,7 +16,7 @@ class Logit(BaseEstimator):
         return self.estimator.coef_ 
 
     def fit(self, X, y):
-        self.estimator=LogisticRegression(penalty=self.penalty, C=self.C, self.class_weight, self.max_iter).fit(X, y)
+        self.estimator=LogisticRegression(penalty=self.penalty, C=self.C, class_weight=self.class_weight, max_iter=self.max_iter).fit(X, y)
         return self
     
     def predict(self, X):

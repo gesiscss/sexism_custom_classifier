@@ -5,12 +5,12 @@ from src.utilities import get_attr
 from src.feature_extraction.build_sentiment_features import BuildSentimentFeature
 from src.feature_extraction.build_ngram_features import BuildNgramFeature
 from src.feature_extraction.build_type_dependency_features import BuildTypeDependencyFeature
-from src.feature_extraction.build_bert_doc_emb_features import BuildBERTDocumentEmbeddingsFeature
+from src.feature_extraction.build_bert_features import BuildBERTFeature
 
 from src.data.preprocessing.preprocess_ngram import  PreprocessNgram
 from src.data.preprocessing.preprocess_sentiment import PreprocessSentiment
 from src.data.preprocessing.preprocess_type_dependency import PreprocessTypeDependency
-from src.data.preprocessing.preprocess_bert_doc_emb import PreprocessBertDocEmb
+from src.data.preprocessing.preprocess_bert import PreprocessBert
 
 from src.feature_selection.selector_rfecv import SelectorRFECV
 
@@ -46,11 +46,11 @@ class FeatureUnionBuilder():
                 ])
                )
     
-    def get_transformer_bert_doc_emb(self):
-        return (Feature.BERTDOCEMB, Pipeline
+    def get_transformer_bert(self):
+        return (Feature.BERT, Pipeline
                 ([
-                    ('preprocessing', PreprocessBertDocEmb()),
-                    ('feature_extraction', BuildBERTDocumentEmbeddingsFeature()),
+                    ('preprocessing', PreprocessBert()),
+                    ('feature_extraction', BuildBERTFeature()),
                 ])
                )
 

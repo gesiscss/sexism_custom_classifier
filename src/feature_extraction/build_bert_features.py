@@ -11,8 +11,8 @@ import torch
 #1.After retrieving embeddings, normalize them
 #2.Prevent overfitting
 
-class BuildBERTDocumentEmbeddingsFeature(BaseEstimator):
-    '''Extracts BERT document embeddings Features'''
+class BuildBERTFeature(BaseEstimator):
+    '''Extracts BERT word and document embeddings features.'''
     def __init__(self, aggregated=True, model_name='bert-base-cased', return_tensors='pt', padding=True, output_hidden_states=True):
         '''
         Args:

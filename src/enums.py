@@ -29,7 +29,7 @@ class Feature():
     SENTIMENT='sentiment'
     NGRAM='ngram'
     TYPEDEPENDENCY='type_dependency'
-    BERTDOCEMB='bert_doc_emb'
+    BERT='bert'
 
 class DataColumn():
     ID='_id'
