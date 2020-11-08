@@ -240,17 +240,37 @@ class MakeDataset:
  
         return df_downsampled
 
-    def downsample_test(self, df):
-        print('Class counts before downsample')
-        print(df.sexist.value_counts())
-        print(df.dataset.value_counts())
+    def downsample_domains(self, df):
+        df_downsampled=pd.DataFrame()
         
-        df_downsampled=self.downsample(df)
+        domains=df.groupby(['dataset']).groups        
+        for domain in domains:
+            df_domain=df[df['dataset'].isin([domain])]
+            df_domain=self.downsample(df_domain)
+            df_downsampled=pd.concat([df_downsampled, df_domain])
+            
+        return df_downsampled
+
+    def downsample_test(self, df, verson=''):
+        df_downsampled=df
         
-        print('Class counts after downsample')
-        print(df_downsampled.sexist.value_counts())
-        print(df_downsampled.dataset.value_counts())
+        print('===== BEFORE DOWNSAMPLE')
+        print()
+        print(pd.DataFrame(df.groupby(['sexist']).size()))
+        print()
+        print(pd.DataFrame(df.groupby(['dataset', 'sexist']).size()))
+        print()
+        if verson=='v1':
+            df_downsampled=self.downsample(df)
+        elif verson=='v2':
+            df_downsampled=self.downsample_domains(df)
         
+        print('===== AFTER DOWNSAMPLE')
+        print()
+        print(pd.DataFrame(df_downsampled.groupby(['sexist']).size()))
+        print()
+        print(pd.DataFrame(df_downsampled.groupby(['dataset', 'sexist']).size()))
+        print()
         return df_downsampled
         
     def get_balanced_data_split(self, data, train_domain, test_domain):
