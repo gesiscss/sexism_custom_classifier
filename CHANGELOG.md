@@ -4,6 +4,11 @@
 
 - Feature : BERT document embeddings preprocessing and feature extraction
 - Model : CNN model
+
+## [0.0.8] - 2020-11-12
+
+### Added
+
 - Experiments : Save the classification performance and the parameters of the model.
 
 ## [0.0.7] - 2020-10-29
