@@ -1,12 +1,28 @@
 import os
 import pandas as pd
+import pickle    
+import time
     
 def read_csv(path, delimiter='\t'):
     return pd.read_csv(path, delimiter=delimiter)
 
 def save_to_csv(df, path, delimiter='\t'):
     df.to_csv(path, index=False, sep=delimiter)
-    
+
+def save_to_pickle(data, path):
+    timestr = time.strftime("%Y%m%d-%H%M%S")
+    file_name=''.join((path, timestr, '.pkl'))
+        
+    with open(file_name, 'wb+') as f:
+        pickle.dump(data, f)
+    return file_name
+
+def read_pickle(file_name):
+    df=[]
+    with open(file_name, 'rb') as f:
+        df = pickle.load(f)
+    return df
+
 def get_object(objects, name: object = None) -> object:
     '''Factory'''
     return objects[name]()

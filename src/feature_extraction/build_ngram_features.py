@@ -19,3 +19,6 @@ class BuildNgramFeature(BaseEstimator):
 
     def transform(self, texts):
         return self.tfidf_vectorizer.transform(texts)
+    
+    def get_feature_names(self):
+        return self.tfidf_vectorizer.get_feature_names()

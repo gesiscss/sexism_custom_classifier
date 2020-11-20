@@ -5,15 +5,26 @@ from sklearn.base import BaseEstimator
 from transformers import AutoConfig, AutoTokenizer, AutoModel 
 
 #other
+import tensorflow as tf
 import torch
+import pandas as pd
+from src import utilities as u
+import numpy as np
 
 #TODOS:
 #1.After retrieving embeddings, normalize them
 #2.Prevent overfitting
 
 class BuildBERTFeature(BaseEstimator):
-    '''Extracts BERT word and document embeddings features.'''
-    def __init__(self, aggregated=True, model_name='bert-base-cased', return_tensors='pt', padding=True, output_hidden_states=True):
+    '''Extracts BERT word and document embeddings features.
+   
+    Pretrained models : https://huggingface.co/transformers/pretrained_models.html
+    
+    bert-large-uncased      : 24-layer, 1024-hidden, 16-heads, 336M parameters. Trained on lower-cased English text.
+    bert-base-uncased       : 12-layer, 768-hidden, 12-heads, 110M parameters. Trained on lower-cased English text.
+    distilbert-base-uncased : 6-layer, 768-hidden, 12-heads, 66M parameters. The DistilBERT model distilled from the BERT model bert-base-uncased checkpoint
+    '''
+    def __init__(self, aggregated=True, model_name='bert-base-uncased', return_tensors='pt', padding=True, output_hidden_states=True, extract=False, save_path='', embedding_file_name=''):
         '''
         Args:
         aggregated (boolean) = True  : an aggregated representation for the whole sequence
@@ -27,6 +38,9 @@ class BuildBERTFeature(BaseEstimator):
         self.return_tensors=return_tensors
         self.padding=padding
         self.output_hidden_states=output_hidden_states
+        self.extract=extract
+        self.save_path=save_path
+        self.embedding_file_name=embedding_file_name
     
     def extract_features(self, data):
         '''Extracts features. 
@@ -49,7 +63,7 @@ class BuildBERTFeature(BaseEstimator):
         model=AutoModel.from_pretrained(self.model_name, config=config)
         
         # 3.Tokenize
-        tokens=tokenizer(data, padding=self.padding , return_tensors=self.return_tensors)
+        tokens=tokenizer(list(data), padding=self.padding , return_tensors=self.return_tensors)
         
         # 4. Retrieve features
         # Model outputs Tuple of torch.FloatTensor (e.g.,  MODEL_NAME = 'bert-base-cased' and return_tensors='pt')
@@ -60,12 +74,36 @@ class BuildBERTFeature(BaseEstimator):
         #    Model outputs Tuple of 3 tensors: 
         #        ( (BATCH_SIZE, NB_TOKENS, REPRESENTATION_SIZE), (BATCH_SIZE, REPRESENTATION_SIZE), (LAYER_SIZE, BATCH_SIZE, NB_TOKENS, REPRESENTATION_SIZE) ) where LAYER_SIZE = initial embeddings + 12 BERT layers
         outputs = model(**tokens)
-        return outputs
+        
+        #Save word embeddings
+        file_name=self.save_features(outputs[0], data)
+        
+        #Save document embeddings
+        #self.save_features(outputs[1], data)
+        
+        return file_name
+    
+    def save_features(self, features, data):
+        data_dic=[]
+        for i in  range(len(data)):
+            row={'_id': data.index[i], 'embedding':features[i].numpy() }
+            data_dic.append(row)
+    
+        df=pd.DataFrame.from_dict(data_dic)
+        return u.save_to_pickle(df, '/'.join((self.save_path, 'features')))
     
     def fit(self, x, y=None):
-        #TODO
+        if self.extract:
+            return self.extract_features(x)
         return self
 
     def transform(self, texts):
-        #TODO
-        return None
+        df=u.read_pickle(self.embedding_file_name)
+        df.set_index('_id', inplace=True)
+        filtered_df=df[df.index.isin(texts.index)]
+    
+        embedding_list=[]
+        for i in range(len(filtered_df.embedding)):
+            embedding_list.append(df.embedding[i])
+    
+        return tf.convert_to_tensor(embedding_list, dtype=tf.float32)

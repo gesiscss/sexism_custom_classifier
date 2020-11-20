@@ -26,4 +26,4 @@ class PreprocessTypeDependency(BaseEstimator):
         return self
 
     def transform(self, raw_docs):
-        return [self.preprocess(raw_doc) for raw_doc in raw_docs]
+        return raw_docs.apply(lambda x: self.preprocess(x))

@@ -14,6 +14,7 @@ from sklearn.metrics import classification_report
 import pickle
 import time
 import pandas as pd
+import itertools
 
 #param grids for models
 param_grid_logit = {
@@ -30,7 +31,7 @@ param_grid_svm = {
 
 #param grids for features
 param_grid_sentiment = {
-    'features__sentiment__feature_extraction__score_names': [['neg', 'compound'], ['neu', 'pos'], ],
+    'features__sentiment__feature_extraction__score_names': [['neg', 'compound'], ['neg', 'compound', 'neu', 'pos'], ],
 }   
 
 param_grid_ngram = {
@@ -38,6 +39,11 @@ param_grid_ngram = {
     #'features__ngram__feature_selection__model': [model, ],
 }   
 
+param_grid_type_dependency= {
+    'features__type_dependency__feature_extraction__ngram_range': [(1, 1),],
+    'features__type_dependency__feature_extraction__model_path': ['/Users/ezgidaldal/sexism_custom_classifier/stanford-corenlp-4.1.0', ],
+    #'features__type_dependency__feature_selection__model': [model, ],
+}   
 
 class RunPipeline():
     '''Runs pipeline for a given data domain, model and features.'''
@@ -66,7 +72,7 @@ class RunPipeline():
         make_dataset = MakeDataset()
         data = make_dataset.read_data('../data/raw/all_data_augmented.csv')
         
-        results_df = pd.DataFrame(columns=['train_domain', 'train_type','test_domain', 'test_type',
+        results_df = pd.DataFrame(columns=['train_domain', 'train_domain_modified','test_domain', 'test_domain_modified',
                                             'model_name', 'feature_names', 'param_grid', 'best_params', 
                                             'y_test', 'y_pred', 'y_test_ids'])
         
@@ -91,11 +97,14 @@ class RunPipeline():
                     grid_search.fit(X_train, y_train)
                     y_pred=grid_search.predict(X_test)
             
-                    results_df=results_df.append({'train_domain':i, 'train_type':i,'test_domain':i, 'test_type':i, 
-                                         'model_name':model, 'feature_names':feature_names, 
-                                         'param_grid':param_grid, 'best_params': grid_search.best_params_, 
-                                         'y_test':y_test, 'y_pred':y_pred, 'y_test_ids':i}, 
-                                        ignore_index=True)
+                    results_df=results_df.append({'train_domain':train_domain['dataset'], 
+                                                  'train_domain_modified':train_domain['modified'], 
+                                                  'test_domain':test_domain['dataset'], 
+                                                  'test_domain_modified':test_domain['modified'], 
+                                                  'model_name':model, 'feature_names':feature_names, 
+                                                  'param_grid':param_grid, 'best_params': grid_search.best_params_, 
+                                                  'y_test':y_test, 'y_pred':y_pred, 'y_test_ids':X_test.index}, 
+                                                 ignore_index=True)
             
         # Step 5. Get classification report  
         metrics_df=results_df.apply(lambda r: self.get_classification_report(r['y_test'], r['y_pred']), axis=1)
@@ -110,19 +119,39 @@ class RunPipeline():
             
         return file_name
     
+    def get_feature_combinations(self, features):
+        comb_list=[]
+        feature_count=len(features)
+        for i in range(feature_count):
+            comb_list.extend(list(itertools.combinations(range(feature_count), (i+1))))
+
+        feature_combinations=[]
+        for combination in comb_list:
+            feature_names=[]
+            param_grids={}
+    
+            for f in combination:
+                feature_names.append(features[f]['name'])
+                param_grids.update(features[f]['param_grid'])
+        
+            feature_combinations.append({'features': feature_names, 'param_grid': param_grids})
+    
+        return feature_combinations
+    
     def run_experiments_research_question_1(self):
         train_domain=Domain.BHO
         test_domain=Domain.BHO
         
         models={Model.LR:param_grid_logit, Model.SVM:param_grid_svm}
         
-        sentiment={'features': [Feature.SENTIMENT, ], 'param_grid': param_grid_sentiment}
-        ngram={'features': [Feature.NGRAM, ], 'param_grid': param_grid_ngram}
-        sentiment_ngram={'features': [Feature.SENTIMENT, Feature.NGRAM], 
-                         'param_grid': {**param_grid_sentiment, **param_grid_ngram}}
-        features_list = [sentiment, ngram, sentiment_ngram]
-        #features_list = [sentiment, ]
-        
+        sentiment={'name': Feature.SENTIMENT, 'param_grid': param_grid_sentiment}
+        ngram={'name': Feature.NGRAM, 'param_grid': param_grid_ngram}
+        type_dependency={'name': Feature.TYPEDEPENDENCY, 'param_grid': param_grid_type_dependency}
+
+        features=[sentiment, ngram, type_dependency]
+        features_list=self.get_feature_combinations(features)
+        print(features_list)
+                
         file_name=self.run(train_domain, test_domain, models, features_list, iteration_count=1, file_name='results_rq1_')
         
         return file_name

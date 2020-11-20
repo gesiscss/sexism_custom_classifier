@@ -48,7 +48,6 @@ class MakeDataset:
         data=data[data.text != '']
         data['preprocessed']=[self.preprocess(raw_doc) for raw_doc in data['text']]
         data=data[data.preprocessed != '']
-        
         data['sexist'] = data.copy()['sexist'].astype(int)
         data=pd.DataFrame(data[['_id', 'sexist', 'text', 'of_id','dataset']])
         return data
@@ -288,6 +287,9 @@ class MakeDataset:
         # Step 3. Shuffle
         X_train=shuffle(X_train, random_state=0)
         X_test=shuffle(X_test, random_state=0)
+        
+        X_train.set_index('_id', inplace=True)
+        X_test.set_index('_id', inplace=True)
         
         X_train, y_train=X_train['text'], X_train['sexist'].ravel()
         X_test, y_test=X_test['text'], X_test['sexist'].ravel()

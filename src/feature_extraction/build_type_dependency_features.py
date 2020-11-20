@@ -15,7 +15,7 @@ import urllib
 class BuildTypeDependencyFeature(BaseEstimator):
     '''Extracts Type Dependency Features'''
     
-    def __init__(self, ngram_range=(1,3), model_path=None):
+    def __init__(self, ngram_range=(1,1), model_path=None):
         '''
         Args:
         ngram_range (tuple (min_n, max_n)) = Ngram range for  features (e.g. (1, 2) means that extracts unigrams and bigrams)
