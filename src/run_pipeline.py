@@ -150,7 +150,6 @@ class RunPipeline():
 
         features=[sentiment, ngram, type_dependency]
         features_list=self.get_feature_combinations(features)
-        print(features_list)
                 
         file_name=self.run(train_domain, test_domain, models, features_list, iteration_count=1, file_name='results_rq1_')
         
