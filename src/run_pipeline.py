@@ -45,6 +45,12 @@ param_grid_type_dependency= {
     #'features__type_dependency__feature_selection__model': [model, ],
 }   
 
+param_grid_bert= {
+    'features__bert__feature_extraction__embedding_file_name': ['../src/bert_embeddings/doc_embeddings20201121-161343.pkl', ],
+    'features__bert__feature_extraction__extract': [False, ],
+    'features__bert__feature_extraction__model_name': ['bert-base-uncased', ],
+}   
+
 class RunPipeline():
     '''Runs pipeline for a given data domain, model and features.'''
         
@@ -147,8 +153,10 @@ class RunPipeline():
         sentiment={'name': Feature.SENTIMENT, 'param_grid': param_grid_sentiment}
         ngram={'name': Feature.NGRAM, 'param_grid': param_grid_ngram}
         type_dependency={'name': Feature.TYPEDEPENDENCY, 'param_grid': param_grid_type_dependency}
-
-        features=[sentiment, ngram, type_dependency]
+        bert={'name': Feature.BERT, 'param_grid': param_grid_bert}
+        
+        features=[sentiment, ngram, type_dependency, bert]
+        
         features_list=self.get_feature_combinations(features)
                 
         file_name=self.run(train_domain, test_domain, models, features_list, iteration_count=1, file_name='results_rq1_')

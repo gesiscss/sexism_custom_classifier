@@ -7,7 +7,7 @@ from src.enums import *
 import os
 
 DATA_PATH='../data/raw/all_data_augmented.csv'
-SAVE_DIR='bert_embeddings_new'
+SAVE_DIR='bert_embeddings'
 
 save_path = os.path.abspath(SAVE_DIR) 
 if not os.path.exists(save_path):

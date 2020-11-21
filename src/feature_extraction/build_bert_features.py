@@ -76,21 +76,21 @@ class BuildBERTFeature(BaseEstimator):
         outputs = model(**tokens)
         
         #Save word embeddings
-        file_name=self.save_features(outputs[0], data)
+        file_name_word_emb=self.save_features(outputs[0], data, 'word_embeddings')
         
         #Save document embeddings
-        #self.save_features(outputs[1], data)
+        file_name_doc_emb=self.save_features(outputs[1], data, 'doc_embeddings')
         
-        return file_name
+        return file_name_word_emb, file_name_doc_emb
     
-    def save_features(self, features, data):
+    def save_features(self, features, data, file_name):
         data_dic=[]
         for i in  range(len(data)):
             row={'_id': data.index[i], 'embedding':features[i].numpy() }
             data_dic.append(row)
-    
+        
         df=pd.DataFrame.from_dict(data_dic)
-        return u.save_to_pickle(df, '/'.join((self.save_path, 'features')))
+        return u.save_to_pickle(df, '/'.join((self.save_path, file_name)))
     
     def fit(self, x, y=None):
         if self.extract:
@@ -101,9 +101,10 @@ class BuildBERTFeature(BaseEstimator):
         df=u.read_pickle(self.embedding_file_name)
         df.set_index('_id', inplace=True)
         filtered_df=df[df.index.isin(texts.index)]
-    
+        
         embedding_list=[]
-        for i in range(len(filtered_df.embedding)):
-            embedding_list.append(df.embedding[i])
-    
+
+        for i in range(len(texts)):
+            embedding_list.append(filtered_df.loc[texts.index[i]].embedding)
+        
         return tf.convert_to_tensor(embedding_list, dtype=tf.float32)
