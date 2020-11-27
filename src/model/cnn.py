@@ -24,8 +24,8 @@ class CNN(BaseEstimator):
                  max_words=2400,
                  sequence_length=60,
                  dropout_prob=(0.2,0.5),
-                 verbose=1,
-                 print_model=True
+                 verbose=0,
+                 print_model=False
                 ):
         
         self.global_max_pool=global_max_pool

@@ -78,15 +78,15 @@ class MakeDataset:
     
     def get_original_data(self, data):
         '''Gets original data.'''
-        return data[data[DataColumn.ADVERSARIAL].isnull()]
+        return data[data['of_id'].isnull()]
     
     def get_adversarial_examples(self, data):
         '''Gets adversarial examples.'''
-        return data[data[DataColumn.ADVERSARIAL].notna()]
+        return data[data['of_id'].notna()]
        
     def get_data_by_domain_name(self, data, domain_name):
         '''Gets data by domain name.'''
-        return pd.DataFrame(data[data[DataColumn.DATASET] == domain_name])
+        return pd.DataFrame(data[data['dataset'] == domain_name])
     
     def get_modified_data(self, original_data, adversarial_examples, sample_proportion):
         '''Modifies given data domain by injecting adversarial examples (while maintaining equal size)
@@ -103,23 +103,23 @@ class MakeDataset:
         original_data = shuffle(original_data, random_state=0)
         
         ### To check the size end of the method
-        begin_len_sexist = len(original_data[original_data['sexist'] == Label.SEXIST])
-        begin_len_nonsexist = len(original_data[original_data['sexist'] == Label.NONSEXIST])
+        begin_len_sexist = len(original_data[original_data['sexist'] == 1])
+        begin_len_nonsexist = len(original_data[original_data['sexist'] == 0])
         ###
     
         #Step 1.Sample 'sample_proportion' of the sexist examples
-        sexist = original_data[original_data['sexist'] == Label.SEXIST]
+        sexist = original_data[original_data['sexist'] == 1]
         sample_count = int(len(sexist) * sample_proportion)
         sexist = sexist.head(sample_count)
     
         #Step 2.Retrieve the modified version of sexist examples on step 1
-        adversarial_examples = adversarial_examples[adversarial_examples[DataColumn.ADVERSARIAL].isin(sexist[DataColumn.ID])]  
+        adversarial_examples = adversarial_examples[adversarial_examples['of_id'].isin(sexist['_id'])]  
         #There might be more than one modified example for a sexist tweet. Select the first one.
-        adversarial_examples = adversarial_examples.drop_duplicates(subset =DataColumn.ADVERSARIAL, keep = 'first')
+        adversarial_examples = adversarial_examples.drop_duplicates(subset ='of_id', keep = 'first')
         
         #Step 3.Discard a corresponding number of non-sexist examples from the original data set. (to maintain equal size)
-        non_sexist = original_data[original_data[DataColumn.LABEL] == Label.NONSEXIST].head(len(adversarial_examples))
-        original_data = original_data[~original_data[DataColumn.ID].isin(non_sexist[DataColumn.ID])]
+        non_sexist = original_data[original_data['sexist'] == 0].head(len(adversarial_examples))
+        original_data = original_data[~original_data['_id'].isin(non_sexist['_id'])]
         
         #Step 4.Inject retrieved adversarial examples on step 2 
         #NOTE: When sexist examples > nonsexist examples, adversarial_examples might be more than non_sexist example count.
@@ -127,8 +127,8 @@ class MakeDataset:
         original_data = pd.concat([original_data, adversarial_examples.head(len(non_sexist))], axis=0)
         
         ######### To compare the data size before and after injection ##############
-        end_len_sexist = len(original_data[original_data['sexist'] == Label.SEXIST])
-        end_len_nonsexist = len(original_data[original_data['sexist'] == Label.NONSEXIST])
+        end_len_sexist = len(original_data[original_data['sexist'] == 1])
+        end_len_nonsexist = len(original_data[original_data['sexist'] == 0])
         
         if begin_len_sexist != end_len_sexist or begin_len_nonsexist != end_len_nonsexist:
             print('equal size did not maintain: sexist begin {} sexist end {} nonsexist begin {} nonsexist end {}'.format(begin_len_sexist, end_len_sexist, begin_len_nonsexist, end_len_nonsexist))

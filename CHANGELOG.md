@@ -2,8 +2,14 @@
 
 ## [Unreleased]
 
+- Model : CNN model with pre-trained embeddings
+
+## [0.0.9] - 2020-11-27
+
+### Added
+
+- Model : CNN model with emebedding layer
 - Feature : BERT document embeddings preprocessing and feature extraction
-- Model : CNN model
 
 ## [0.0.8] - 2020-11-12
 
