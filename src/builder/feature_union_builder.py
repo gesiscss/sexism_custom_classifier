@@ -6,11 +6,13 @@ from src.feature_extraction.build_sentiment_features import BuildSentimentFeatur
 from src.feature_extraction.build_ngram_features import BuildNgramFeature
 from src.feature_extraction.build_type_dependency_features import BuildTypeDependencyFeature
 from src.feature_extraction.build_bert_features import BuildBERTFeature
+from src.feature_extraction.build_text_vect_features import BuildTextVecFeature
 
 from src.data.preprocessing.preprocess_ngram import  PreprocessNgram
 from src.data.preprocessing.preprocess_sentiment import PreprocessSentiment
 from src.data.preprocessing.preprocess_type_dependency import PreprocessTypeDependency
 from src.data.preprocessing.preprocess_bert import PreprocessBert
+from src.data.preprocessing.preprocess_textvec import PreprocessTextVec
 
 from src.feature_selection.selector_rfecv import SelectorRFECV
 
@@ -19,6 +21,14 @@ from sklearn.pipeline import Pipeline
 from sklearn.pipeline import FeatureUnion
  
 class FeatureUnionBuilder():
+    
+    def get_transformer_textvec(self):
+        return (Feature.TEXTVEC, Pipeline
+                ([
+                    ('preprocessing', PreprocessTextVec()),
+                    ('feature_extraction', BuildTextVecFeature()),
+                ])
+               )
     
     def get_transformer_sentiment(self):
         return (Feature.SENTIMENT, Pipeline

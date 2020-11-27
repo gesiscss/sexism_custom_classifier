@@ -28,6 +28,16 @@ param_grid_svm = {
     'model__C': [1, 10, 100],  #[0.001,0.01,0.1,1,10,100],
 }
 
+param_grid_cnn = {
+    'model__num_filters': [8], #[120, 100, 80],  #conv output
+    #'model__hidden_dims': [64], #[64, 50, 10], 
+    'model__num_epochs': [30], #[15, 30, 50],
+    'model__filter_sizes':[(2,3,4,5,6), ],
+    #'model__filter_sizes':[(2,3,4,5,6), (2,3,4), (3,4,5)], 
+    #'model__l2':[0.00001, 0.01, 0.1],
+    'model__embedding_dim':[50 ,]
+}
+
 
 #param grids for features
 param_grid_sentiment = {
@@ -50,6 +60,11 @@ param_grid_bert= {
     'features__bert__feature_extraction__extract': [False, ],
     'features__bert__feature_extraction__model_name': ['bert-base-uncased', ],
 }   
+
+param_grid_text_vec = {
+    'features__textvec__feature_extraction__max_tokens': [2400, ],
+    'features__textvec__feature_extraction__output_sequence_length': [60, ],
+} 
 
 class RunPipeline():
     '''Runs pipeline for a given data domain, model and features.'''
@@ -144,21 +159,24 @@ class RunPipeline():
     
         return feature_combinations
     
-    def run_experiments_research_question_1(self):
+    def run_experiments_research_question_1(self, iteration_count=1):
         train_domain=Domain.BHO
         test_domain=Domain.BHO
         
-        models={Model.LR:param_grid_logit, Model.SVM:param_grid_svm}
+        models={Model.CNN:param_grid_cnn, }
+        #models={Model.LR:param_grid_logit, Model.SVM:param_grid_svm, }
         
         sentiment={'name': Feature.SENTIMENT, 'param_grid': param_grid_sentiment}
         ngram={'name': Feature.NGRAM, 'param_grid': param_grid_ngram}
         type_dependency={'name': Feature.TYPEDEPENDENCY, 'param_grid': param_grid_type_dependency}
         bert={'name': Feature.BERT, 'param_grid': param_grid_bert}
+        text_vec={'name': Feature.TEXTVEC, 'param_grid': param_grid_text_vec}
         
-        features=[sentiment, ngram, type_dependency, bert]
+        features=[text_vec, ]
+        #features=[sentiment, ngram, type_dependency, bert]
         
         features_list=self.get_feature_combinations(features)
                 
-        file_name=self.run(train_domain, test_domain, models, features_list, iteration_count=1, file_name='results_rq1_')
+        file_name=self.run(train_domain, test_domain, models, features_list, iteration_count=iteration_count, file_name='results_rq1_')
         
         return file_name

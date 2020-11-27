@@ -30,6 +30,7 @@ class Feature():
     NGRAM='ngram'
     TYPEDEPENDENCY='type_dependency'
     BERT='bert'
+    TEXTVEC='textvec'
 
 class DataColumn():
     ID='_id'
