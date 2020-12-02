@@ -22,51 +22,33 @@ from sklearn.pipeline import FeatureUnion
  
 class FeatureUnionBuilder():
     
-    def get_transformer_textvec(self):
-        return (Feature.TEXTVEC, Pipeline
-                ([
-                    ('preprocessing', PreprocessTextVec()),
-                    ('feature_extraction', BuildTextVecFeature()),
-                ])
-               )
+    def get_pipeline_textvec(self):
+        return [('preprocessing', PreprocessTextVec()), ('feature_extraction', BuildTextVecFeature())]
     
-    def get_transformer_sentiment(self):
-        return (Feature.SENTIMENT, Pipeline
-                ([
-                    ('preprocessing', PreprocessSentiment()),
-                    ('feature_extraction', BuildSentimentFeature()),
-                ])
-               )
+    def get_pipeline_sentiment(self):
+        return [('preprocessing', PreprocessSentiment()), ('feature_extraction', BuildSentimentFeature())]
 
-    def get_transformer_ngram(self):
-        return (Feature.NGRAM, Pipeline
-                ([
-                    ('preprocessing', PreprocessNgram()),
-                    ('feature_extraction', BuildNgramFeature()),
-                    ('feature_selection', SelectorRFECV()),
-                ])
-               )
+    def get_pipeline_ngram(self):
+        return [('preprocessing', PreprocessNgram()), ('feature_extraction', BuildNgramFeature())]
     
-    def get_transformer_type_dependency(self):
-        return (Feature.TYPEDEPENDENCY, Pipeline
-                ([
-                    ('preprocessing', PreprocessTypeDependency()),
-                    ('feature_extraction', BuildTypeDependencyFeature()),
-                    ('feature_selection', SelectorRFECV()),
-                ])
-               )
+    def get_pipeline_type_dependency(self):
+        return [('preprocessing', PreprocessTypeDependency()), ('feature_extraction', BuildTypeDependencyFeature())]
     
-    def get_transformer_bert(self):
-        return (Feature.BERT, Pipeline
-                ([
-                    ('preprocessing', PreprocessBert()),
-                    ('feature_extraction', BuildBERTFeature()),
-                ])
-               )
-
-    def get_transformer(self, feature):
-        method_name = 'get_transformer_' + feature
-        return get_attr(self, method_name)
+    def get_pipeline_bert_doc(self):
+        return [('preprocessing', PreprocessBert()), ('feature_extraction', BuildBERTFeature())]
+    
+    def get_pipeline_bert_word(self):
+        return [('preprocessing', PreprocessBert()), ('feature_extraction', BuildBERTFeature())]
+    
+    def get_pipeline(self, name, feature_selection):
+        method_name = 'get_pipeline_' + name
+        
+        pipeline=get_attr(self, method_name)
+        
+        if feature_selection:
+            pipeline.append(('feature_selection', SelectorRFECV()))
+        
+        return (name, Pipeline(pipeline))
     
     def get_transformer_list(self, features):
         '''Gets transformer list. 
@@ -75,12 +57,13 @@ class FeatureUnionBuilder():
         features (list): Features that will be added to the pipeline
         
         Example:
-        >>>features = [Feature.SENTIMENT, Feature.NGRAM, ]
+        >>>features = [{'name': 'sentiment', 'feature_selection': False}, {'name': 'ngram', 'feature_selection': True}]
         >>>get_transformer_list(features)
         '''
+        print('feature union ', features)
         transformer_list=[]
         for feature in features:
-            transformer_list.append(self.get_transformer(feature))
+            transformer_list.append(self.get_pipeline(**feature))
         return transformer_list
 
     def get_feature_union(self, features):

@@ -1,0 +1,21 @@
+{
+    "logistic_regression":
+    {
+        "model__estimator":[{ "items":"logistic_regression", "__model_obj__": true}],
+        "model__estimator__C": [10],
+        "model__estimator__max_iter":[2500]
+    },
+    "svm":
+    {
+        "model__estimator":[{ "items":"svm", "__model_obj__": true}],
+        "model__estimator__C": [100]
+    },
+    "cnn":
+    {
+        "model__estimator":[{ "items":"cnn", "__model_obj__": true}],
+        "model__estimator__num_filters": [8],
+        "model__estimator__num_epochs": [30],
+        "model__estimator__filter_sizes": [{ "items":[2, 3], "__tuple__": true}],
+        "model__estimator__embedding_dim":[50]
+    }
+}

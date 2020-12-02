@@ -25,7 +25,9 @@ def read_pickle(file_name):
 
 def get_object(objects, name: object = None) -> object:
     '''Factory'''
-    return objects[name]()
+    if name in objects.keys():
+        return objects[name]()
+    return None
 
 def get_attr(object_, method_name):
     return getattr(object_, method_name)()
@@ -133,3 +135,47 @@ def start_time_calculator(function):
         result = function(*args, **kwargs)
         return result
     return wrapper
+
+#######################################################
+import json
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from src.model.cnn import CNN
+
+from src.enums import Model, Domain, Feature
+
+build_model_objects={
+                Model.LR: LogisticRegression,
+                Model.SVM: SVC,
+                Model.CNN: CNN,
+        }
+
+def object_hook_method(obj):
+        if '__tuple__' in obj:
+            return tuple(obj['items'])
+        elif '__model_obj__' in obj:
+            return [get_object(build_model_objects, model) for model in obj['items']]
+        elif '__model__' in obj:
+            return [getattr(Model, model) for model in obj['items']]
+        elif '__domain__' in obj:
+            return [getattr(Domain, domain) for domain in obj['items']]
+        elif '__feature__' in obj:
+            return getattr(Feature, obj['item'])
+        else:
+            return obj
+
+class Params():
+    def __init__(self, json_path):
+        self.update(json_path)
+    
+    def update(self, json_path):
+        """Loads parameters from json file"""
+        with open(json_path) as f:
+            params = json.load(f, object_hook=object_hook_method)
+            self.__dict__.update(params)
+
+    @property
+    def dict(self):
+        """Gives dict-like access to Params instance by `params.dict['data_file']`"""
+        return self.__dict__

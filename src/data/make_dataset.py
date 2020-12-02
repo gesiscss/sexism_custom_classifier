@@ -12,16 +12,7 @@ from sklearn.utils import resample
 import pandas as pd
 
 class MakeDataset:
-    '''Prepares data domains.'''
-    def __init__(self, n_splits=1, test_size=0.3, random_state=None):
-        '''
-        Args:
-        n_split = number of re-shuffling & splitting iterations
-        test_size = the proportion of the dataset to include in the test split
-        '''
-        self.n_splits=n_splits
-        self.test_size=test_size
-        self.random_state=random_state
+    '''Prepares data.'''
     
     def read_csv(self, full_path, delimiter='\t'):
         '''Reads raw data from the full path.'''
@@ -71,8 +62,8 @@ class MakeDataset:
         
         return split_dict 
     
-    def get_splits(self, X):
-        split_dict=self.get_n_splits(X, self.n_splits, self.test_size, self.random_state)
+    def get_splits(self, X, n_splits, test_size, random_state):
+        split_dict=self.get_n_splits(X, n_splits, test_size, random_state)
         
         return split_dict[0]['X_train'], split_dict[0]['X_test']
     
@@ -83,10 +74,6 @@ class MakeDataset:
     def get_adversarial_examples(self, data):
         '''Gets adversarial examples.'''
         return data[data['of_id'].notna()]
-       
-    def get_data_by_domain_name(self, data, domain_name):
-        '''Gets data by domain name.'''
-        return pd.DataFrame(data[data['dataset'] == domain_name])
     
     def get_modified_data(self, original_data, adversarial_examples, sample_proportion):
         '''Modifies given data domain by injecting adversarial examples (while maintaining equal size)
@@ -137,76 +124,6 @@ class MakeDataset:
         #Step 5.Shuffle
         original_data=shuffle(original_data, random_state=0)
         return original_data
-      
-    def get_symmetric_difference_data(self, original_data, domain_names, modified=False, adversarial_examples=None, sample_proportion=0):
-        ''' '''
-        X=pd.DataFrame()
-    
-        for domain in domain_names:
-            X_domain=self.get_data_by_domain_name(original_data, domain)
-        
-            if modified and len(X_domain) > 0:
-                X_domain=self.get_modified_data(X_domain, adversarial_examples, sample_proportion)
-        
-            X=X.append(X_domain, ignore_index=True)
-        
-        return X
-    
-    def get_intersection_data_domains(self, original_data, domain_names, train_modified=False, test_modified=False, adversarial_examples=None):
-        ''' '''
-        X_train, X_test=pd.DataFrame(), pd.DataFrame()
-        
-        for domain in domain_names:
-            X_domain = self.get_data_by_domain_name(original_data, domain)
-            
-            X_train_s, X_test_s=self.get_splits(X_domain)
-            
-            if train_modified:
-                X_train_s=self.get_modified_data(X_train_s, adversarial_examples, sample_proportion=0.5)
-                
-            if test_modified:
-                X_test_s=self.get_modified_data(X_test_s, adversarial_examples, sample_proportion=1)
-           
-            X_train=X_train.append(X_train_s, ignore_index=True)
-            X_test=X_test.append(X_test_s, ignore_index=True)
-        
-        return X_train, X_test
-        
-    def get_train_and_test_sets(self, data, train_domain_names, test_domain_names, train_modified=False, test_modified=False):
-        '''Gets splits for training and test data domains. 
-        #Step 1. Find the symmetric difference and the intersection of training and test domain names
-        #Step 2. Get the symmetric difference data that only TRAIN has
-        #Step 3. Get the symmetric difference data that only TEST has
-        #Step 4. Get data that the intersection of training and test domains  
-        #Step 5. Append the symmetric difference data to the intersection data
-        '''
-        X_train, X_test=pd.DataFrame(), pd.DataFrame()
-        
-        original_data = self.get_original_data(data)
-        adversarial_examples = self.get_adversarial_examples(data)
-        
-        #Step 1. Find the symmetric difference and the intersection of training and test domain names
-        domain_names_only_train=list(set(train_domain_names) - set(test_domain_names))
-        domain_names_only_test= list(set(test_domain_names) - set(train_domain_names))
-        domain_names_intersection=list(set(train_domain_names).intersection(test_domain_names))
-    
-        #Step 2. Get the symmetric difference data that only TRAIN has
-        X_train_sym_diff=self.get_symmetric_difference_data(original_data, domain_names_only_train, modified=train_modified, adversarial_examples=adversarial_examples, sample_proportion=0.5)
-        
-        #Step 3. Get the symmetric difference data that only TEST has
-        X_test_sym_diff=self.get_symmetric_difference_data(original_data, domain_names_only_test, modified=test_modified, adversarial_examples=adversarial_examples, sample_proportion=1)
-        
-        #Step 4. Get data that the intersection of training and test domains   
-        X_train_intersection, X_test_intersection=self.get_intersection_data_domains(original_data, domain_names_intersection, train_modified=train_modified, test_modified=test_modified, adversarial_examples=adversarial_examples)
-        
-        #Step 5. Append the symmetric difference data to the intersection data
-        X_train=X_train.append(X_train_sym_diff, ignore_index=True)
-        X_train=X_train.append(X_train_intersection, ignore_index=True)
-        
-        X_test=X_test.append(X_test_sym_diff, ignore_index=True)
-        X_test=X_test.append(X_test_intersection, ignore_index=True)
-        
-        return X_train, X_test
         
     def downsample(self, df):
         '''Balances dataset by downsampling the majority class. 
@@ -238,60 +155,39 @@ class MakeDataset:
         df_downsampled = pd.concat([df_majority_downsampled, df_minority])
  
         return df_downsampled
-
-    def downsample_domains(self, df):
-        df_downsampled=pd.DataFrame()
+    
+    def prepare_data_splits(self, data, random_state):
+        original_data = self.get_original_data(data)
+        adversarial_examples = self.get_adversarial_examples(data)
         
-        domains=df.groupby(['dataset']).groups        
-        for domain in domains:
-            df_domain=df[df['dataset'].isin([domain])]
-            df_domain=self.downsample(df_domain)
-            df_downsampled=pd.concat([df_downsampled, df_domain])
+        dataset_list=[Dataset.BENEVOLENT, Dataset.HOSTILE, Dataset.OTHER, Dataset.CALLME, Dataset.SCALES]
+        
+        splits_original, splits_modified={}, {}
+        for dataset in dataset_list:
+            X=original_data[original_data.dataset == dataset]
+            X_train, X_test=self.get_splits(X, n_splits=1, test_size=0.3, random_state=random_state)
             
-        return df_downsampled
-
-    def downsample_test(self, df, verson=''):
-        df_downsampled=df
+            splits_original[dataset]={'X_train':X_train, 'X_test':X_test}
+            splits_modified[dataset]={
+                'X_train':self.get_modified_data(X_train, adversarial_examples, 0.5), 
+                'X_test':self.get_modified_data(X_test, adversarial_examples, 1)
+            }
+            
+        return splits_original, splits_modified
+    
+    def get_data_split(self, domain, splits_original, splits_modified, train=False, test=True):
+        splits=splits_original if domain['modified'] == False else splits_modified
+        return self.get_balanced_data(domain, splits, train, test)
         
-        print('===== BEFORE DOWNSAMPLE')
-        print()
-        print(pd.DataFrame(df.groupby(['sexist']).size()))
-        print()
-        print(pd.DataFrame(df.groupby(['dataset', 'sexist']).size()))
-        print()
-        if verson=='v1':
-            df_downsampled=self.downsample(df)
-        elif verson=='v2':
-            df_downsampled=self.downsample_domains(df)
+    def get_balanced_data(self, data_domain, splits, train, test):
+        col='X_train' if train else 'X_test' if test else ''
         
-        print('===== AFTER DOWNSAMPLE')
-        print()
-        print(pd.DataFrame(df_downsampled.groupby(['sexist']).size()))
-        print()
-        print(pd.DataFrame(df_downsampled.groupby(['dataset', 'sexist']).size()))
-        print()
-        return df_downsampled
+        X=pd.DataFrame()
+        for domain in data_domain['dataset']:
+            X=pd.concat([X, self.downsample(splits[domain][col])])
+    
+        X=shuffle(X, random_state=0)
+        X.set_index('_id', inplace=True)
+        X, y=X['text'], X['sexist'].ravel()
         
-    def get_balanced_data_split(self, data, train_domain, test_domain):
-        ''' '''
-        train_modified, train_domain_names=train_domain['modified'], train_domain['dataset']
-        test_modified,  test_domain_names=test_domain['modified'], test_domain['dataset']
-        
-        # Step 1. Gets splits for training and test data domains. 
-        X_train, X_test=self.get_train_and_test_sets(data, train_domain_names, test_domain_names, train_modified, test_modified)
-        
-        # Step 2. Balance
-        X_train=self.downsample(X_train)
-        X_test=self.downsample(X_test)
-        
-        # Step 3. Shuffle
-        X_train=shuffle(X_train, random_state=0)
-        X_test=shuffle(X_test, random_state=0)
-        
-        X_train.set_index('_id', inplace=True)
-        X_test.set_index('_id', inplace=True)
-        
-        X_train, y_train=X_train['text'], X_train['sexist'].ravel()
-        X_test, y_test=X_test['text'], X_test['sexist'].ravel()
-        
-        return X_train, y_train, X_test, y_test
+        return X, y

@@ -6,12 +6,11 @@ from src.builder.model_builder import ModelBuilder
 from sklearn.pipeline import Pipeline
 
 class PipelineBuilder():
-    def __init__(self, model, features):
-        self.model=model
+    def __init__(self, features):
         self.features=features
         
     def build_pipeline(self):
         return Pipeline([
             ("features", FeatureUnionBuilder().get_feature_union(self.features)),
-            ('model', ModelBuilder().get_model(self.model)),
+            ('model', ModelBuilder()),
         ])

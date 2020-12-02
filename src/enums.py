@@ -5,7 +5,6 @@ class Model():
     CNN='cnn'
     SVM='svm'
     
-    
 
 class Dataset():
     BENEVOLENT='benevolent'
@@ -27,5 +26,6 @@ class Feature():
     SENTIMENT='sentiment'
     NGRAM='ngram'
     TYPEDEPENDENCY='type_dependency'
-    BERT='bert'
+    BERTDOC='bert_doc'
+    BERTWORD='bert_word'
     TEXTVEC='textvec'
