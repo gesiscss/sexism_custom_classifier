@@ -1,5 +1,5 @@
 {
-    "data_file":"/Users/ezgidaldal/sexism_custom_classifier/data/raw/all_data_augmented.csv",
+    "data_file":"/path/data.csv",
     "iteration_count":1,
     "train_domains":[{ "items":["BHO", "BHOM", "BHOCS", "BHOCSM", "C", "CM"], "__domain__": true}],
     "test_domains":[{ "items":["BHO", "BHOM", "BHOCS", "BHOCSM", "C", "CM", "S"], "__domain__": true}],
@@ -30,8 +30,7 @@
             "feature_selection":false,
             "param_grid": {
                 "features__type_dependency__feature_extraction__ngram_range": [{ "items":[1, 1], "__tuple__": true}],
-                "features__type_dependency__feature_extraction__model_path": 
-                ["/Users/ezgidaldal/sexism_custom_classifier/stanford-corenlp-4.1.0"]
+                "features__type_dependency__feature_extraction__model_path": ["/path/stanford-corenlp-4.1.0"]
             }
         },
         "5":
@@ -39,8 +38,7 @@
             "name":{ "item":"BERTDOC", "__feature__": true},
             "feature_selection":false,
             "param_grid": {
-                "features__bert_doc__feature_extraction__embedding_file_name":
-        ["/Users/ezgidaldal/sexism_custom_classifier/src/bert_embeddings/doc_embeddings20201121-161343.pkl"]
+                "features__bert_doc__feature_extraction__embedding_file_name": ["/path/doc_embeddings.pkl"]
             }
         },
         "6":
@@ -48,8 +46,7 @@
             "name":{ "item":"BERTWORD", "__feature__": true},
             "feature_selection":false,
             "param_grid": {
-                "features__bert_word__feature_extraction__embedding_file_name":
-        ["/Users/ezgidaldal/sexism_custom_classifier/src/bert_embeddings/word_embeddings20201121-161340.pkl"]
+                "features__bert_word__feature_extraction__embedding_file_name": ["/path/word_embeddings.pkl"]
             }
         },
         "7":
