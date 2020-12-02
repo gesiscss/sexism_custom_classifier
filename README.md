@@ -21,3 +21,25 @@ Sexism custom classifier is implemented to detect sexism automatically in the fi
 * Logistic Regression
 * Convolutional Neural Network
 * Support Vector Machine
+
+## Experiments
+
+This example code replicates the results.
+
+```shell
+export PARAMS_FILE='experiments/params_all_domains.json'
+export HYPERPARAMS_FILE='experiments/hyperparams.json'
+
+python run.py \
+  --params_file=$PARAMS_FILE \
+  --hyperparams_file=$HYPERPARAMS_FILE \
+```
+
+This example code obtains the pre-trained BERT embeddings.
+
+```shell
+export DATA_FILE=/path/data.csv
+
+python run_bert_feature_extraction.py \
+	--data_file=$DATA_FILE \
+```
