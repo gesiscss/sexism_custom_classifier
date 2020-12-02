@@ -155,7 +155,7 @@ def object_hook_method(obj):
         if '__tuple__' in obj:
             return tuple(obj['items'])
         elif '__model_obj__' in obj:
-            return [get_object(build_model_objects, model) for model in obj['items']]
+            return get_object(build_model_objects, getattr(Model, obj['item']))
         elif '__model__' in obj:
             return [getattr(Model, model) for model in obj['items']]
         elif '__domain__' in obj:

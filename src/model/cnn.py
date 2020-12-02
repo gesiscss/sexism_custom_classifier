@@ -21,7 +21,7 @@ class CNN(BaseEstimator):
                  l2=0.01, 
                  output_activation='softmax',
                  embedding_layer=True,
-                 max_words=2400,
+                 max_words=3400,
                  sequence_length=60,
                  dropout_prob=(0.2,0.5),
                  verbose=0,

@@ -60,7 +60,6 @@ class FeatureUnionBuilder():
         >>>features = [{'name': 'sentiment', 'feature_selection': False}, {'name': 'ngram', 'feature_selection': True}]
         >>>get_transformer_list(features)
         '''
-        print('feature union ', features)
         transformer_list=[]
         for feature in features:
             transformer_list.append(self.get_pipeline(**feature))
