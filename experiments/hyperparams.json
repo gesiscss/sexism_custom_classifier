@@ -1,22 +1,37 @@
 {
     "logistic_regression":
     {
-        "model__estimator":[{ "item":"LR", "__model_obj__": true}],
-        "model__estimator__C": [10],
+        "model__estimator__C": [0.001,0.01,0.1,1,10,100],
         "model__estimator__max_iter":[2500]
     },
     "svm":
     {
-        "model__estimator":[{ "item":"SVM", "__model_obj__": true}],
-        "model__estimator__C": [100]
+        "model__estimator__C": [0.001,0.01,0.1,1,10,100],
+        "model__estimator__kernel":["linear","poly", "rbf", "sigmoid"],
+        "model__estimator__gamma":["scale", "auto"]
     },
-    "cnn":
+    "cnn_bert_word":
     {
-        "model__estimator":[{ "item":"CNN", "__model_obj__": true}],
+        "model__estimator__embedding_layer": [false],
+        "model__estimator__embedding_dim":[768],
+        "model__estimator__sequence_length":[46],
         "model__estimator__num_filters": [8],
         "model__estimator__num_epochs": [30],
-        "model__estimator__filter_sizes": [{ "items":[2, 3], "__tuple__": true}],
-        "model__estimator__embedding_dim":[50],
-        "model__estimator__max_words":[3400]
-    }
+        "model__estimator__filter_sizes": [{ "items":[2,3,4,5,6], "__tuple__": true}]
+    },
+    "cnn_textvec":
+    {
+        "model__estimator__embedding_layer": [true],
+        "model__estimator__embedding_dim":[150],
+        "model__estimator__sequence_length":[60],
+        "model__estimator__max_words":[3400],
+        "model__estimator__num_filters": [8],
+        "model__estimator__num_epochs": [30],
+        "model__estimator__filter_sizes": [{ "items":[2,3,4,5,6], "__tuple__": true}]
+    },
+    "gender_word":
+    {
+        "model__estimator__vocab_path":["/path/gender_words.txt"]
+    },
+    "threshold_classifier":{}
 }

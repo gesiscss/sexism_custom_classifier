@@ -14,7 +14,8 @@ class BuildNgramFeature(BaseEstimator):
         self.tfidf_vectorizer = None
     
     def fit(self, x, y=None):
-        self.tfidf_vectorizer = TfidfVectorizer(ngram_range=self.ngram_range, preprocessor=' '.join).fit(x)
+        #self.tfidf_vectorizer = TfidfVectorizer(ngram_range=self.ngram_range, preprocessor=' '.join).fit(x)
+        self.tfidf_vectorizer = TfidfVectorizer(ngram_range=self.ngram_range).fit(x)
         return self
 
     def transform(self, texts):

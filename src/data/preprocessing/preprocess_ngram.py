@@ -1,5 +1,6 @@
 #src module
 from src.utilities import Preprocessing
+from src.data.preprocessing.jha2017_preprocessing import preprocess as jha_preprocess
 
 #sklearn
 from sklearn.base import BaseEstimator
@@ -43,4 +44,5 @@ class PreprocessNgram(BaseEstimator):
         return self
 
     def transform(self, raw_docs):
-        return raw_docs.apply(lambda x: self.preprocess(x))
+        #return raw_docs.apply(lambda x: self.preprocess(x))
+        return raw_docs.apply(lambda x: jha_preprocess(x, False))

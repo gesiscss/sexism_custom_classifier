@@ -1,8 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [0.0.10] - 2020-12-07
+
+### Added
 
 - Model : CNN model with pre-trained embeddings
+- Model : Baseline models (gender word and toxicity)
 
 ## [0.0.9] - 2020-11-27
 

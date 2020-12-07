@@ -14,6 +14,7 @@ from src.data.preprocessing.preprocess_type_dependency import PreprocessTypeDepe
 from src.data.preprocessing.preprocess_bert import PreprocessBert
 from src.data.preprocessing.preprocess_textvec import PreprocessTextVec
 
+from src.builder.item_selector import ItemSelector
 from src.feature_selection.selector_rfecv import SelectorRFECV
 
 #sklearn
@@ -43,7 +44,9 @@ class FeatureUnionBuilder():
     def get_pipeline(self, name, feature_selection):
         method_name = 'get_pipeline_' + name
         
-        pipeline=get_attr(self, method_name)
+        pipeline=[('selector', ItemSelector(key='text'))]
+        
+        pipeline.extend(get_attr(self, method_name))
         
         if feature_selection:
             pipeline.append(('feature_selection', SelectorRFECV()))

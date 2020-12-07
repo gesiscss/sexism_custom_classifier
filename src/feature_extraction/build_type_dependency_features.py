@@ -14,7 +14,8 @@ import urllib
 class BuildTypeDependencyFeature(BaseEstimator):
     '''Extracts Type Dependency Features'''
     
-    def __init__(self, ngram_range=(1,1), model_path=None):
+    def __init__(self, ngram_range=(1,1), add_relation=True, model_path=None, 
+                 extract=False, save_path='', type_dep_file_name=''):
         '''
         Args:
         ngram_range (tuple (min_n, max_n)) = Ngram range for  features (e.g. (1, 2) means that extracts unigrams and bigrams)
@@ -22,6 +23,10 @@ class BuildTypeDependencyFeature(BaseEstimator):
         self.ngram_range=ngram_range
         self.model_path=model_path
         self.vectorizer=None
+        self.add_relation=add_relation
+        self.extract=extract
+        self.save_path=save_path
+        self.type_dep_file_name=type_dep_file_name
     
     def start_CoreNLPServer(self):
         url='http://localhost:9000'
@@ -73,11 +78,15 @@ class BuildTypeDependencyFeature(BaseEstimator):
                 if str(dep) not in ['punct']:
                     processed_governor=self.process(governor[0])
                     processed_dependent=self.process(dependent[0])
-                    feature = processed_governor + '_' +  dep + '_' + processed_dependent + ' '
+                    feature=''
+                    if self.add_relation:
+                        feature = processed_governor + '_' +  dep + '_' + processed_dependent + ' '
+                    else:
+                        feature = processed_governor + '_' + processed_dependent + ' '
                     features = features + feature
             return features
         except Exception as e:
-            print(text, e)
+            print('text >> ', text, e)
             raise Exception(e)
 
     #@execution_time_calculator
@@ -90,11 +99,40 @@ class BuildTypeDependencyFeature(BaseEstimator):
         except Exception as e:
             raise Exception(e)
             
+    def get_features_from_file(self, texts):
+        df=read_pickle(self.type_dep_file_name)
+        df.set_index('_id', inplace=True)
+        filtered_df=df[df.index.isin(texts.index)]
+        
+        feature_list=[]
+        for i in range(len(texts)):
+            feature_list.append(filtered_df.loc[texts.index[i]].type_dependencies)
+        return feature_list
+    
+    def save_features(self, features, data, file_name):
+        data_dic=[]
+        for i in  range(len(data)):
+            row={'_id': data.index[i], 'type_dependencies':features[i] }
+            data_dic.append(row)
+        
+        df=pd.DataFrame.from_dict(data_dic)
+        return save_to_pickle(df, '/'.join((self.save_path, file_name)))
+    
     def fit(self, x, y=None):
-        x = self.get_type_dependency_relationships(x)
-        self.vectorizer = TfidfVectorizer(ngram_range=self.ngram_range).fit(x)
+        if self.extract:
+            self.add_relation=True
+            x_with_relation = self.get_type_dependency_relationships(x)
+            self.save_features(x_with_relation, x, 'type_dep_with_relation')
+            
+            self.add_relation=False
+            x_without_relation = self.get_type_dependency_relationships(x)
+            self.save_features(x_without_relation, x, 'type_dep_without_relation')
+        else:
+            x=self.get_features_from_file(x)
+            self.vectorizer = TfidfVectorizer(ngram_range=self.ngram_range).fit(x)
+        
         return self
 
     def transform(self, texts):
-        texts = self.get_type_dependency_relationships(texts)
+        texts=self.get_features_from_file(texts)
         return self.vectorizer.transform(texts)

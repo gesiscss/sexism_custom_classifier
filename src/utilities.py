@@ -45,7 +45,7 @@ from nltk.stem import PorterStemmer
 porter_stemmer = PorterStemmer()
 
 from pycontractions import Contractions
-cont = Contractions(api_key="glove-twitter-100")
+#cont = Contractions(api_key="glove-twitter-100")
 
 import re
 import string
@@ -62,8 +62,8 @@ class Preprocessing():
     def stem_porter(self, text):
         return porter_stemmer.stem(text)
 
-    def expand_contractions(self, text):
-        return list(cont.expand_texts([text], precise=True))[0]
+    #def expand_contractions(self, text):
+    #    return list(cont.expand_texts([text], precise=True))[0]
 
     def remove_usernames(self, text):
         return re.sub(r'@\w+ ?', '', text)
@@ -138,24 +138,13 @@ def start_time_calculator(function):
 
 #######################################################
 import json
-
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from src.model.cnn import CNN
-
 from src.enums import Model, Domain, Feature
-
-build_model_objects={
-                Model.LR: LogisticRegression,
-                Model.SVM: SVC,
-                Model.CNN: CNN,
-        }
 
 def object_hook_method(obj):
         if '__tuple__' in obj:
             return tuple(obj['items'])
-        elif '__model_obj__' in obj:
-            return get_object(build_model_objects, getattr(Model, obj['item']))
+        elif '__tuple_list__' in obj:
+            return [tuple(i) for i in obj['items']]
         elif '__model__' in obj:
             return [getattr(Model, model) for model in obj['items']]
         elif '__domain__' in obj:

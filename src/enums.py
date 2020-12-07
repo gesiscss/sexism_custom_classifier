@@ -1,10 +1,9 @@
-from enum import Enum
-
 class Model():
     LR='logistic_regression'
     CNN='cnn'
     SVM='svm'
-    
+    GENDERWORD='gender_word'
+    THRESHOLDCLASSIFIER='threshold_classifier'    
 
 class Dataset():
     BENEVOLENT='benevolent'
@@ -29,3 +28,4 @@ class Feature():
     BERTDOC='bert_doc'
     BERTWORD='bert_word'
     TEXTVEC='textvec'
+    GENDERWORD='gender_word'

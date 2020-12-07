@@ -5,6 +5,7 @@ from sklearn.base import BaseEstimator
 from tensorflow import keras
 import tensorflow as tf
 
+#other
 import numpy as np
 
 class CNN(BaseEstimator):
@@ -20,7 +21,7 @@ class CNN(BaseEstimator):
                  embedding_dim=150, 
                  l2=0.01, 
                  output_activation='softmax',
-                 embedding_layer=True,
+                 embedding_layer=False,
                  max_words=3400,
                  sequence_length=60,
                  dropout_prob=(0.2,0.5),
@@ -45,10 +46,68 @@ class CNN(BaseEstimator):
         self.print_model=print_model
         
         self.estimator=None
-        
+    
     def build_cnn(self):
-        #TODO
-        return None
+        model_input = keras.layers.Input(shape=(self.sequence_length, self.embedding_dim))
+    
+        # 1.
+        x=model_input
+        
+        # 2. Expand dimension
+        x=tf.expand_dims(x, -1)
+        
+        # 3.Add dropout
+        x = keras.layers.SpatialDropout2D(self.dropout_prob[0])(x)
+       
+        # 4.Create a convolution + pooling layer for each filter size
+        conv_kernel_reg = keras.regularizers.L2(self.l2)
+        conv_bias_reg = keras.regularizers.L2(self.l2) 
+        
+        conv_blocks = []
+        for filter_size in self.filter_sizes:
+            # 4.1 Convolution layer
+            conv = keras.layers.Conv2D(filters=self.num_filters, 
+                      kernel_size=filter_size,
+                      strides=(1, 1), 
+                      padding='valid',
+                      activation='relu',
+                      kernel_regularizer=conv_kernel_reg, 
+                      bias_regularizer=conv_bias_reg)(x)
+            
+            # 4.2 Pooling layer
+            if self.global_max_pool:
+                conv = keras.layers.GlobalMaxPool2D()(conv)
+            else:
+                conv = keras.layers.MaxPool2D()(conv)
+                conv = keras.layers.Flatten()(conv)
+            
+            conv_blocks.append(conv)
+        
+        # 5.Combine all the pooled features
+        x = keras.layers.Concatenate()(conv_blocks) if len(conv_blocks) > 1 else conv_blocks[0]
+    
+        # 6.Add dropout
+        x = keras.layers.Dropout(self.dropout_prob[1])(x)
+
+        # 7. Dense layer
+        x = keras.layers.Dense(self.hidden_dims, activation="relu")(x)
+        
+        # 8. Model Output
+        output_num=2 #softmax
+        if self.output_activation== 'sigmoid':
+            output_num=1
+        model_output = keras.layers.Dense(output_num, activation=self.output_activation)(x)
+        
+        # 9. Create Model
+        model = keras.Model(model_input, model_output)
+        model.compile(loss=keras.losses.BinaryCrossentropy(from_logits=True),
+                      optimizer=keras.optimizers.Adam(),
+                      metrics=["accuracy"])
+        
+        if self.print_model:
+            print(model.summary())
+        
+        return model
     
     def build_cnn_with_emb(self):
         model_input = keras.layers.Input(shape=(self.sequence_length,), dtype='int32')

@@ -2,6 +2,7 @@
 from src import utilities as u
 from src.enums import *
 from src.utilities import Preprocessing
+from src.data.preprocessing.preprocess_type_dependency import PreprocessTypeDependency
 
 #sklearn
 from sklearn.model_selection import ShuffleSplit
@@ -18,29 +19,14 @@ class MakeDataset:
         '''Reads raw data from the full path.'''
         return u.read_csv(full_path, delimiter=delimiter)
 
-    def preprocess(self, text):
-        try:
-            upre=Preprocessing()
-            
-            text=upre.remove_new_lines(text)
-            text=upre.replace_whitespace_with_single_space(text)
-            text=upre.remove_URLs(text)
-            text=upre.remove_usernames(text)
-            text=upre.remove_hashtags(text)
-            text=upre.clean_tweet(text)
-            return text
-        except Exception as e:
-            print('text> {}'.format(text))
-            raise Exception(e)
-
     def preprocess_data(self, data):
         data=data[~data.sexist.isnull()]
         data=data[data.text.notna()]
         data=data[data.text != '']
-        data['preprocessed']=[self.preprocess(raw_doc) for raw_doc in data['text']]
+        
+        data['preprocessed']=PreprocessTypeDependency().transform(data.text)
         data=data[data.preprocessed != '']
         data['sexist'] = data.copy()['sexist'].astype(int)
-        data=pd.DataFrame(data[['_id', 'sexist', 'text', 'of_id','dataset']])
         return data
     
     def read_data(self, full_path):
@@ -188,6 +174,6 @@ class MakeDataset:
     
         X=shuffle(X, random_state=0)
         X.set_index('_id', inplace=True)
-        X, y=X['text'], X['sexist'].ravel()
+        X, y=X[['text', 'toxicity']], X['sexist'].ravel()
         
         return X, y

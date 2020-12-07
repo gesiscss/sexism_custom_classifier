@@ -2,7 +2,6 @@
 from src.data.make_dataset import MakeDataset
 from src.builder.pipeline_builder import PipelineBuilder
 from src.utilities import *
-
 from src.enums import *
 
 #sklearn
@@ -17,6 +16,8 @@ import time
 import pandas as pd
 import itertools
 from absl import app, flags
+import nltk
+nltk.download('vader_lexicon')
 
 FLAGS = flags.FLAGS
 
@@ -30,6 +31,10 @@ flags.DEFINE_string(
     "hyperparams_file", None, 
     "")
 
+flags.DEFINE_string(
+    "file_name", None, 
+    "")
+
 
 class RunPipeline():
     '''Runs pipeline for a given data domain, model and features.'''
@@ -40,13 +45,14 @@ class RunPipeline():
     def prepare_parameters(self):
         self.make_dataset = MakeDataset()
         self.data_file=self.params.dict['data_file']
-        self.iteration_count=self.params.dict['iteration_count']
+        self.iteration=self.params.dict['iteration']
         self.train_domains=self.params.dict['train_domains'][0]
         self.test_domains=self.params.dict['test_domains'][0]
         self.models=self.get_models()
-        self.results_df = pd.DataFrame(columns=['train_domain', 'train_domain_modified','test_domain', 'test_domain_modified',
-                                            'model_name', 'features_set', 'param_grid_model', 'best_params', 
+        self.results_df = pd.DataFrame(columns=['iteration','train_domain', 'test_domain', 'model_name', 'features',
+                                            'param_grid', 'best_params', 
                                             'y_test', 'y_pred', 'y_test_ids'])
+        
         
     @execution_time_calculator
     def run(self):
@@ -63,53 +69,52 @@ class RunPipeline():
         # Step 1. Read data
         data = self.make_dataset.read_data(self.data_file)
         
-        for i in range(self.iteration_count):
+        for i in self.iteration:
+            train_num=0
             
             splits_original, splits_modified=self.make_dataset.prepare_data_splits(data, random_state=i)
             
             for train_domain in self.train_domains:
                 X_train, y_train=self.make_dataset.get_data_split(train_domain, splits_original, splits_modified, train=True)
     
-                for model_name, value in self.models.items():
-                    features_set, param_grid_model=value['features_set'], value['param_grid_model']
-                
+                for model_name, features_set in self.models.items():
                     for f in features_set:
+                        train_num=train_num+1
                         
-                        features, param_grid_features=f['features'], f['param_grid']
-                        
-                        param_grid={**param_grid_features, **param_grid_model} 
-                        print('Running the pipeline for: {}, {}, {}'.format(model_name, 
+                        features, param_grid=f['features'], f['param_grid']
+                        print('{}.{} Running the pipeline for: {}, {}, {}'.format(i, train_num, model_name, 
                                                                             [k['name'] for k in features], train_domain))
-                        
                         # Step 3. Build Pipeline
-                        pipeline=PipelineBuilder(features).build_pipeline()
-                   
+                        pipeline=PipelineBuilder(features, model_name).build_pipeline()
+                        
                         # Step 4. Fit
                         grid_search = GridSearchCV(pipeline, param_grid, cv=2, scoring='f1_macro')
                         grid_search.fit(X_train, y_train)
-                    
+                        
                         # Step 5. Predict
                         for test_domain in self.test_domains:
                             X_test, y_test=self.make_dataset.get_data_split(test_domain, splits_original, splits_modified, test=True)
                             
                             y_pred=grid_search.predict(X_test)
             
-                            self.results_df=results_df.append({'train_domain':train_domain['dataset'], 
-                                                  'train_domain_modified':train_domain['modified'], 
-                                                  'test_domain':test_domain['dataset'], 
-                                                  'test_domain_modified':test_domain['modified'], 
-                                                  'model_name':model_name, 'features_set':features_set, 
-                                                  'param_grid_model':param_grid_model, 'best_params': grid_search.best_params_, 
-                                                  'y_test':y_test, 'y_pred':y_pred, 'y_test_ids':X_test.index}, 
+                            self.results_df=self.results_df.append({
+                                                  'iteration':'.'.join((str(i), str(train_num))),
+                                                  'train_domain':train_domain, 'test_domain':test_domain, 
+                                                  'model_name':model_name, 'features':features, 
+                                                  'param_grid':param_grid, 
+                                                  'best_params': grid_search.best_params_, 
+                                                  'y_test':y_test, 'y_pred':y_pred, 
+                                                  'y_test_ids':X_test.copy().reset_index()['_id']}, 
                                                  ignore_index=True)
-            
+                            
         # Step 6. Get and save classification report  
         metrics_df=self.results_df.apply(lambda r: self.get_classification_report(r['y_test'], r['y_pred']), axis=1)
         
         results_df=pd.concat((self.results_df, metrics_df), axis=1)
         
+        file_name=''.join(('experiments/results_', FLAGS.file_name, '_')) if FLAGS.file_name != None else 'experiments/results_'
         timestr = time.strftime("%Y%m%d-%H%M%S")
-        file_name=''.join(('experiments/results_', timestr, '.pkl'))
+        file_name=''.join((file_name, timestr, '.pkl'))
         
         with open(file_name, 'wb+') as f:
             pickle.dump(results_df, f)
@@ -117,39 +122,46 @@ class RunPipeline():
         return file_name
     
     def get_models(self):
-        params_models=self.params.dict['models'][0]
-        
-        valid_models=[Model.LR, Model.SVM, Model.CNN]
-        
-        #Get features
-        features_svm_logit=self.get_svm_and_logit_features()
-        features_cnn=self.get_cnn_features()
+        valid_models=[Model.LR, Model.SVM, Model.CNN, Model.GENDERWORD, Model.THRESHOLDCLASSIFIER]
+        params_models=list(set(self.params.dict['models'][0]).intersection(valid_models))
         
         models={}
         for name in params_models:
-            if name in valid_models:
-                features=None
+            features=[]
             
-                if name == Model.CNN:
-                    features=features_cnn
-                else:
-                    features=features_svm_logit
+            if name == Model.CNN:
+                features=self.get_cnn_features()
+            elif name == Model.SVM or name == Model.LR:
+                features=self.get_svm_and_logit_features(name)
+            else:
+                features=[{'features':[{'name':'baseline', 'feature_selection':False}], 
+                           'param_grid':self.hyperparams.dict[name]}]
                 
-                models[name]={'features_set':features, 'param_grid_model':self.hyperparams.dict[name]}
-        
+            models[name]=features
         return models
     
     def get_cnn_features(self):
+        params_features=self.params.dict['features']
+        
         valid_features=[Feature.TEXTVEC, Feature.BERTWORD]
-        features=self.get_features(valid_features)
+        
+        features=[]
+        for k, v in params_features.items():
+            name=v['name']
+            if name in valid_features:
+                param_grid_model=self.hyperparams.dict[''.join((Model.CNN, '_', name))]
+                features.append({
+                    'features':{'name':name, 'feature_selection':v['feature_selection']}, 
+                    'param_grid':{**v['param_grid'], **param_grid_model}
+                })
         return [{'features':[i['features']], 'param_grid':i['param_grid']} for i in features] 
     
-    def get_svm_and_logit_features(self):
+    def get_svm_and_logit_features(self, model):
         valid_features=[Feature.SENTIMENT, Feature.NGRAM, Feature.TYPEDEPENDENCY, Feature.BERTDOC]
         features=self.get_features(valid_features)
         
         #Return feature combinations
-        return self.get_feature_combinations(features)
+        return self.get_feature_combinations(features, model)
     
     def get_features(self, valid_features):
         params_features=self.params.dict['features']
@@ -165,7 +177,9 @@ class RunPipeline():
          
         return features
     
-    def get_feature_combinations(self, features):
+    def get_feature_combinations(self, features, model):
+        param_grid_model=self.hyperparams.dict[model]
+        
         #1.Create index combinations
         comb_list=[]
         feature_count=len(features)
@@ -176,7 +190,7 @@ class RunPipeline():
         feature_combinations=[]
         for combination in comb_list:
             comb_features, feature_names=[], []
-            param_grids={}
+            param_grid_features={}
     
             for f in combination:
                 #Prevent adding same features in a combination (e.g. ngram (1,1) and ngram(1,2))
@@ -187,9 +201,10 @@ class RunPipeline():
                 feature_names.append(features[f]['features']['name'])
                 
                 comb_features.append(features[f]['features'])
-                param_grids.update(features[f]['param_grid'])
+                param_grid_features.update(features[f]['param_grid'])
             if len(feature_names) > 0:
-                feature_combinations.append({'features': comb_features, 'param_grid': param_grids})
+                feature_combinations.append(
+                    {'features': comb_features, 'param_grid': {**param_grid_features, **param_grid_model}})
     
         return feature_combinations
     
@@ -204,9 +219,10 @@ class RunPipeline():
         return pd.Series(filtered_dict)
 
 def main(argv):
-    print()
     file_name=RunPipeline().run()
+    print()
     print(file_name)
+    print()
 
 if __name__ == '__main__':
     # Required flag.
