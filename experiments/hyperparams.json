@@ -17,8 +17,12 @@
         "model__estimator__sequence_length":[46],
         "model__estimator__num_filters": [8],
         "model__estimator__num_epochs": [30],
-        "model__estimator__filter_sizes": [{ "items":[3,4,5], "__tuple__": true},
-                                           { "items":[2,3,4,5,6], "__tuple__": true}]
+        "model__estimator__verbose":[0],
+        "model__estimator__filter_sizes": [
+            { "items":[2,3,4], "__tuple__": true},
+            { "items":[3,4,5], "__tuple__": true},
+            { "items":[2,3,4,5,6], "__tuple__": true}
+        ]
     },
     "cnn_textvec":
     {
@@ -28,7 +32,12 @@
         "model__estimator__max_words":[3400],
         "model__estimator__num_filters": [8],
         "model__estimator__num_epochs": [30],
-        "model__estimator__filter_sizes": [{ "items":[2,3,4,5,6], "__tuple__": true}]
+        "model__estimator__verbose":[0],
+        "model__estimator__filter_sizes": [
+            { "items":[2,3,4], "__tuple__": true},
+            { "items":[3,4,5], "__tuple__": true},
+            { "items":[2,3,4,5,6], "__tuple__": true}
+        ]
     },
     "gender_word":
     {

@@ -8,6 +8,6 @@ setup(
     #packages=find_packages("src"),
     packages=find_packages(),
     python_requires='>=3.7.8, <4',
-    install_requires=['pandas', 'scikit-learn', 'nltk', 'tweet-preprocessor', 'pycontractions', 'ipywidgets', 'tensorflow', 'torch', 'transformers', 'spacy'],
+    install_requires=['pandas', 'scikit-learn', 'nltk', 'tweet-preprocessor', 'pycontractions', 'ipywidgets', 'tensorflow', 'transformers', 'spacy', 'bs4', 'unidecode'],
     scripts = ['loadpackages.sh'],
 )

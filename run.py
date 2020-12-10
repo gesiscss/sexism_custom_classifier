@@ -123,7 +123,7 @@ class RunPipeline():
                     
                     for fs in features_set:
                         train_num=train_num+1
-                        param_grid=self.hyperparams.dict[model_name]
+                        param_grid=self.get_param_grid_model(model_name, fs['features'])
                         combination, features=fs['combination'], fs['features']
                         
                         
@@ -167,19 +167,27 @@ class RunPipeline():
                                                   ignore_index=True)
                             
                             
-        # Step 7. Get and save classification report  
-        metrics_df=self.results_df.apply(lambda r: self.get_classification_report(r['y_test'], r['y_pred']), axis=1)
+            # Step 7. Get and save classification report  
+            metrics_df=self.results_df.apply(lambda r: self.get_classification_report(r['y_test'], r['y_pred']), axis=1)
         
-        results_df=pd.concat((self.results_df, metrics_df), axis=1)
+            results_df=pd.concat((self.results_df, metrics_df), axis=1)
         
-        file_name=''.join(('experiments/results_', FLAGS.file_name, '_')) if FLAGS.file_name != None else 'experiments/results_'
-        timestr = time.strftime("%Y%m%d-%H%M%S")
-        file_name=''.join((file_name, timestr, '.pkl'))
+            file_name=''.join(('experiments/results_', FLAGS.file_name, '_')) if FLAGS.file_name != None else 'experiments/results_'
+            timestr = time.strftime("%Y%m%d-%H%M%S")
+            file_name=''.join((file_name, timestr, '_', str(i), '.pkl'))
         
-        with open(file_name, 'wb+') as f:
-            pickle.dump(results_df, f)
+            with open(file_name, 'wb+') as f:
+                pickle.dump(results_df, f)
             
-        return file_name
+        return 'FINISHED'
+    
+    def get_param_grid_model(self, model_name, features):
+        if model_name != Model.CNN:
+            return self.hyperparams.dict[model_name]
+        else:
+            p=self.hyperparams.dict['_'.join((model_name, features[0]['name']))]
+            print(p)
+            return p
     
     def get_models(self):
         valid_models=[Model.LR, Model.SVM, Model.CNN, Model.GENDERWORD, Model.THRESHOLDCLASSIFIER]

@@ -27,7 +27,7 @@ Sexism custom classifier is implemented to detect sexism automatically in the fi
 This example code replicates the results.
 
 ```shell
-export PARAMS_FILE='experiments/params_all_domains.json'
+export PARAMS_FILE='experiments/params.json'
 export HYPERPARAMS_FILE='experiments/hyperparams.json'
 
 python run.py \
