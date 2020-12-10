@@ -2,85 +2,107 @@
     "data_file":"/path/all_data_augmented.csv",
     "iteration":[1,2,3,4,5],
     "train_domains":[{ "items":["BHO"], "__domain__": true}],
-    "test_domains":[{ "items":["BHO"], "__domain__": true}],
-    "models":[{ "items":["CNN","SVM","LR","GENDERWORD", "THRESHOLDCLASSIFIER"], "__model__": true}],
+    "test_domains":[{ "items":["BHO", "BHOM", "BHOCS", "BHOCSM", "C", "CM", "S"], "__domain__": true}],
+    "models":[{ "items":["LR","SVM"], "__model__": true}],
     "features":
     {
         "1": 
         { 
             "name":{ "item":"SENTIMENT", "__feature__": true},
             "feature_selection":false,
-            "param_grid":{ "features__sentiment__feature_extraction__score_names": [["neg", "compound"],
-                                                                                   ["neg", "compound", "neu", "pos"]] }
+            "feature_pipeline_params":{ 
+                "feature_extraction__score_names": ["neg", "compound", "neu", "pos"]
+            }
         },
         "2": 
         { 
             "name":{ "item":"NGRAM", "__feature__": true},
-            "feature_selection":true,
-            "param_grid": { "features__ngram__feature_extraction__ngram_range": [{ "items":[1, 1], "__tuple__": true}] }
+            "feature_selection":false,
+            "feature_pipeline_params": {
+                "feature_extraction__ngram_range": { "items":[1, 1], "__tuple__": true}
+            }
         },
         "3": 
         { 
             "name":{ "item":"NGRAM", "__feature__": true},
             "feature_selection":true,
-            "param_grid": { "features__ngram__feature_extraction__ngram_range": [{ "items":[1, 2], "__tuple__": true}] }
+            "feature_pipeline_params": {
+                "feature_extraction__ngram_range": { "items":[1, 1], "__tuple__": true}
+            }
         },
         "4": 
         { 
             "name":{ "item":"NGRAM", "__feature__": true},
-            "feature_selection":true,
-            "param_grid": { "features__ngram__feature_extraction__ngram_range": [{ "items":[1, 3], "__tuple__": true}] }
+            "feature_selection":false,
+            "feature_pipeline_params":{
+                "feature_extraction__ngram_range": { "items":[1, 4], "__tuple__": true}
+            }
         },
         "5": 
         { 
             "name":{ "item":"NGRAM", "__feature__": true},
             "feature_selection":true,
-            "param_grid": { "features__ngram__feature_extraction__ngram_range": [{ "items":[1, 4], "__tuple__": true}] }
+            "feature_pipeline_params":{
+                "feature_extraction__ngram_range": { "items":[1, 4], "__tuple__": true}
+            }
         },
         "6":
         {
             "name":{ "item":"TYPEDEPENDENCY", "__feature__": true},
-            "feature_selection":true,
-            "param_grid": {
-                "features__type_dependency__feature_extraction__ngram_range": [{ "items":[1, 1], "__tuple__": true}],
-                "features__type_dependency__feature_extraction__type_dep_file_name":
-                ["/path/type_dependencies_without_relation.pkl"]
+            "feature_selection":false,
+            "feature_pipeline_params": {
+                "feature_extraction__ngram_range": { "items":[1, 1], "__tuple__": true},
+                "feature_extraction__type_dep_file_name":
+              "/path/type_dependencies_add_relation20201206-213320.pkl"
             }
         },
         "7":
         {
             "name":{ "item":"TYPEDEPENDENCY", "__feature__": true},
             "feature_selection":true,
-            "param_grid": {
-                "features__type_dependency__feature_extraction__ngram_range": [{ "items":[1, 1], "__tuple__": true}],
-                "features__type_dependency__feature_extraction__type_dep_file_name":
-                ["/path/type_dependencies_with_relation.pkl"]
+            "feature_pipeline_params": {
+                "feature_extraction__ngram_range": { "items":[1, 1], "__tuple__": true},
+                "feature_extraction__type_dep_file_name":
+              "/path/type_dependencies_add_relation20201206-213320.pkl"
             }
         },
         "8":
         {
-            "name":{ "item":"BERTDOC", "__feature__": true},
+            "name":{ "item":"TYPEDEPENDENCY", "__feature__": true},
             "feature_selection":false,
-            "param_grid": {
-                "features__bert_doc__feature_extraction__embedding_file_name":["/path/doc_embeddings.pkl"]
+            "feature_pipeline_params": {
+                "feature_extraction__ngram_range": { "items":[1, 4], "__tuple__": true},
+                "feature_extraction__type_dep_file_name":
+              "/path/type_dependencies_add_relation20201206-213320.pkl"
             }
         },
         "9":
         {
-            "name":{ "item":"BERTWORD", "__feature__": true},
-            "feature_selection":false,
-            "param_grid": {
-                "features__bert_word__feature_extraction__embedding_file_name":["/path/word_embeddings.pkl"]
+            "name":{ "item":"TYPEDEPENDENCY", "__feature__": true},
+            "feature_selection":true,
+            "feature_pipeline_params": {
+                "feature_extraction__ngram_range": { "items":[1, 4], "__tuple__": true},
+                "feature_extraction__type_dep_file_name":
+              "/path/type_dependencies_add_relation20201206-213320.pkl"
             }
         },
         "10":
         {
-            "name":{ "item":"TEXTVEC", "__feature__": true},
+            "name":{ "item":"BERTDOC", "__feature__": true},
             "feature_selection":false,
-            "param_grid": {
-                "features__textvec__feature_extraction__max_tokens": [2400],
-                "features__textvec__feature_extraction__output_sequence_length": [60]
+            "feature_pipeline_params": {
+                "feature_extraction__embedding_file_name":
+                "/path/doc_embeddings20201121-161343.pkl"
+            }
+        },
+        "11":
+        {
+            "name":{ "item":"BERTDOC", "__feature__": true},
+            "feature_selection":true,
+            "feature_pipeline_params": {
+                "feature_extraction__embedding_file_name":
+                "/Users/ezgidaldal/sexism_custom_classifier/src/bert_embeddings/doc_embeddings20201121-161343.pkl"
             }
         }
-    }
+    }   
 }
