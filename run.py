@@ -111,7 +111,6 @@ class RunPipeline():
         data = self.make_dataset.read_data(self.data_file)
         
         for i in self.iteration:
-            train_num=0
             
             splits_original, splits_modified=self.make_dataset.prepare_data_splits(data, random_state=i)
             
@@ -120,6 +119,7 @@ class RunPipeline():
                 train_features, test_features=self.extract_features(splits_original, splits_modified, train_domain, self.test_domains)
                         
                 for model_name, features_set in self.models.items():
+                    train_num=0
                     
                     for fs in features_set:
                         train_num=train_num+1

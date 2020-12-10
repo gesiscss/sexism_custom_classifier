@@ -53,7 +53,7 @@
             "feature_pipeline_params": {
                 "feature_extraction__ngram_range": { "items":[1, 1], "__tuple__": true},
                 "feature_extraction__type_dep_file_name":
-              "/path/type_dependencies_add_relation20201206-213320.pkl"
+              "/path/type_dependencies.pkl"
             }
         },
         "7":
@@ -63,7 +63,7 @@
             "feature_pipeline_params": {
                 "feature_extraction__ngram_range": { "items":[1, 1], "__tuple__": true},
                 "feature_extraction__type_dep_file_name":
-              "/path/type_dependencies_add_relation20201206-213320.pkl"
+              "/path/type_dependencies.pkl"
             }
         },
         "8":
@@ -73,7 +73,7 @@
             "feature_pipeline_params": {
                 "feature_extraction__ngram_range": { "items":[1, 4], "__tuple__": true},
                 "feature_extraction__type_dep_file_name":
-              "/path/type_dependencies_add_relation20201206-213320.pkl"
+              "/path/type_dependencies.pkl"
             }
         },
         "9":
@@ -83,7 +83,7 @@
             "feature_pipeline_params": {
                 "feature_extraction__ngram_range": { "items":[1, 4], "__tuple__": true},
                 "feature_extraction__type_dep_file_name":
-              "/path/type_dependencies_add_relation20201206-213320.pkl"
+              "/path/type_dependencies.pkl"
             }
         },
         "10":
@@ -92,7 +92,7 @@
             "feature_selection":false,
             "feature_pipeline_params": {
                 "feature_extraction__embedding_file_name":
-                "/path/doc_embeddings20201121-161343.pkl"
+                "/path/doc_embeddings.pkl"
             }
         },
         "11":
@@ -101,7 +101,7 @@
             "feature_selection":true,
             "feature_pipeline_params": {
                 "feature_extraction__embedding_file_name":
-                "/Users/ezgidaldal/sexism_custom_classifier/src/bert_embeddings/doc_embeddings20201121-161343.pkl"
+                "/path/doc_embeddings.pkl"
             }
         }
     }   
