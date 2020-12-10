@@ -1,4 +1,4 @@
-[![Binder](img/launch_binder.png)](https://notebooks.gesis.org/binder/v2/gh/gesiscss/sexism_custom_classifier/master?filepath=notebooks)
+[![Binder](https://notebooks.gesis.org/binder/badge.svg)](https://notebooks.gesis.org/binder/v2/gh/gesiscss/compsoc/master?filepath=index.ipynb)
 
 # Sexism Custom Classifier
 
