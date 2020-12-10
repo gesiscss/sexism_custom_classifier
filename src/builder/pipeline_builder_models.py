@@ -23,29 +23,6 @@ build_model_objects={
         }
 
 class PipelineBuilderModels():
-    def __init__(self):
-        self.model_obj=None
-        
-    def build_pipeline_logistic_regression(self):
-        return Pipeline([('model', ModelBuilder(self.model_obj))])
     
-    def build_pipeline_svm(self):
-        return Pipeline([('model', ModelBuilder(self.model_obj))])
-    
-    def build_pipeline_cnn(self):
-        return Pipeline([('model', ModelBuilder(self.model_obj))])
-        
-    def build_pipeline_gender_word(self):
-        return Pipeline([('selector', ItemSelector(key='text')),
-                         ('preprocessing', PreprocessGenderWord()),
-                         ('model', ModelBuilder(self.model_obj))
-        ])
-    
-    def build_pipeline_threshold_classifier(self):
-        return Pipeline([('selector', ItemSelector(key='toxicity')),
-                         ('model', ModelBuilder(self.model_obj))
-        ])
-                        
     def build_pipeline(self, model):
-        self.model_obj=get_object(build_model_objects, model)
-        return get_attr(self, ''.join(('build_pipeline_', model)))
+        return Pipeline([('model', ModelBuilder(get_object(build_model_objects, model)))])

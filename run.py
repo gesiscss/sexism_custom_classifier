@@ -59,16 +59,20 @@ class RunPipeline():
         
         #1. Prepare train split for train_domain
         X_train, y_train=self.make_dataset.get_data_split(train_domain, splits_original, splits_modified, train=True)
-        train_features={'train_domain':train_domain, 'X_train':X_train, 'y_train':y_train, 'extracted_features': []}
+        train_features={'train_domain':train_domain, 'X_train':X_train, 'y_train':y_train, 'extracted_features': {}}
         
         #2. Prepare test split for each test_domains
         test_features=[]
         for test_domain in self.test_domains:
             X_test, y_test=self.make_dataset.get_data_split(test_domain, splits_original, splits_modified, test=True)
-            test_features.append({'test_domain':test_domain, 'X_test':X_test, 'y_test':y_test, 'extracted_features': []})
+            test_features.append({'test_domain':test_domain, 'X_test':X_test, 'y_test':y_test, 'extracted_features': {}})
         
         #3. Extract train and test features
         params_features=self.params.dict['features']
+        
+        #Baseline pipelines
+        params_features[Feature.GENDERWORD]={'name':Feature.GENDERWORD,'feature_selection':False,'feature_pipeline_params':{}}
+        params_features[Feature.TOXICITY]={'name':Feature.TOXICITY,'feature_selection':False,'feature_pipeline_params':{}}
         
         for k, v in params_features.items():
             feature_selection, name=v['feature_selection'], v['name']
@@ -80,14 +84,14 @@ class RunPipeline():
             pipe.set_params(**fit_params)
             
             train_feature_list=train_features['extracted_features']
-            train_feature_list.append({'name':name, 'value':pipe.fit_transform(X_train, y_train)})
+            train_feature_list[name]=pipe.fit_transform(X_train, y_train)
             train_features['extracted_features']=train_feature_list
                     
             
             #3.2 Extract test features for each test domain
             for t in test_features:
                 feature_list=t['extracted_features']
-                feature_list.append({'name':name, 'value':pipe.transform(t['X_test'])})
+                feature_list[name]=pipe.transform(t['X_test'])
                 t['extracted_features']=feature_list
         
         return train_features, test_features
@@ -125,8 +129,6 @@ class RunPipeline():
                         train_num=train_num+1
                         param_grid=self.get_param_grid_model(model_name, fs['features'])
                         combination, features=fs['combination'], fs['features']
-                        
-                        
                         print('{}.{}/{} Running the pipeline for: {}, {}, {}'.format(i, train_num, len(features_set), 
                                                                                      model_name, combination, train_domain))
                         
@@ -192,19 +194,25 @@ class RunPipeline():
     def get_models(self):
         valid_models=[Model.LR, Model.SVM, Model.CNN, Model.GENDERWORD, Model.THRESHOLDCLASSIFIER]
         models=list(set(self.params.dict['models'][0]).intersection(valid_models))
-        return {name:self.get_model_features(name) if name in [Model.CNN,Model.SVM,Model.LR] else [] for name in models}
+        return {name:self.get_model_features(name) for name in models}
         
     def get_model_features(self, name):
         params_features=self.params.dict['features']
+        combination_range=1
         
         if name == Model.CNN:
             valid_features=[Feature.TEXTVEC, Feature.BERTWORD]
             features=self.filter_features(valid_features, params_features)
-            return self.get_feature_combinations(features, feature_count=1)
+        elif name == Model.GENDERWORD:
+            features=[{"name": Feature.GENDERWORD}]
+        elif name == Model.THRESHOLDCLASSIFIER:
+            features=[{"name": Feature.TOXICITY}]
         else:
             valid_features=[Feature.SENTIMENT, Feature.NGRAM, Feature.TYPEDEPENDENCY, Feature.BERTDOC]
             features=self.filter_features(valid_features, params_features)
-            return self.get_feature_combinations(features, len(features))
+            combination_range=len(features)
+        
+        return self.get_feature_combinations(features, combination_range)
     
     def filter_features(self, valid_features, params_features):
         features=[]
@@ -217,7 +225,7 @@ class RunPipeline():
         #1.Create index combinations
         comb_list=[]
         for i in range(feature_count):
-            comb_list.extend(list(itertools.combinations(range(feature_count), (i+1))))
+            comb_list.extend(list(itertools.combinations(range(len(features)), (i+1))))
         
         #2.Create feature combination list by using index combinations
         feature_combinations=[]
@@ -232,9 +240,8 @@ class RunPipeline():
                 feature_names.append(features[f]['name'])
                 
                 comb_features.append(features[f])
-            
             if len(feature_names) > 0:
-                feature_combinations.append({'features': comb_features, 'combination': combination})
+                feature_combinations.append({'features': comb_features, 'combination': feature_names})
         return feature_combinations
     
     def get_classification_report(self, y_true, y_pred):

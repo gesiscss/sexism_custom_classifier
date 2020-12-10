@@ -4,6 +4,7 @@ from src.data.preprocessing.preprocess_ngram import  PreprocessNgram
 from src.data.preprocessing.preprocess_type_dependency import PreprocessTypeDependency
 from src.data.preprocessing.preprocess_bert import PreprocessBert
 from src.data.preprocessing.preprocess_textvec import PreprocessTextVec
+from src.data.preprocessing.preprocess_gender_word import PreprocessGenderWord
 
 from src.feature_extraction.build_sentiment_features import BuildSentimentFeature
 from src.feature_extraction.build_ngram_features import BuildNgramFeature
@@ -53,6 +54,13 @@ class PipelineBuilderFeatures():
                 ('preprocessing', PreprocessTextVec()), 
                 ('feature_extraction', BuildTextVecFeature())]
     
+    def build_pipeline_gender_word(self):
+        return [('selector', ItemSelector(key='text')),
+                ('preprocessing', PreprocessGenderWord())]
+    
+    def build_pipeline_toxicity(self):
+        return [('selector', ItemSelector(key='toxicity'))]
+    
     def build_pipeline(self, name, feature_selection=False):
         pipeline=get_attr(self, ''.join(('build_pipeline_', name)))
         if feature_selection:
@@ -60,19 +68,27 @@ class PipelineBuilderFeatures():
         return Pipeline(pipeline)
     
     def build_feature_union(self, combination, extracted_features):
-        '''
-        #e.g., params : combination = (0, 2)     extracted_features=[ {'name': 'sentiment',       'value':[...]},
-        #                                                             {'name': 'ngram',           'value':[...]},
-        #                                                             {'name': 'type_dependency', 'value':[...]}  ]
-        #transformer_list=[
-        #                        ('sentiment',       FeatureClass([...]))
-        #                        ('type_dependency', FeatureClass([...]))
-        #                      ]
+        '''Retrieves combineed polarity scores of text (neutral and compoound scores). 
+    
+        Args:
+        combination (list): Feature names.
+        extracted_features (dict): Extracted features.
+    
+        Returns:
+        object: FeatureUnion object that includes list of transformer objects to be applied to the data.
+    
+        Example:
+            >>> combination = ['sentiment', 'ngram']
+            >>> extracted_features={ 'sentiment':[0.4, 0.5], 'ngram':[0.003,...,0.2] }
+            >>> PipelineBuilderFeatures().build_feature_union(combination, extracted_features)
+            FeatureUnion([
+                            ('sentiment', FeatureClass([0.4, 0.5])), 
+                            ('type_dependency', FeatureClass([0.003,...,0.2]))
+                         ]
         '''
         transformer_list=[]
-        for c in combination:
-            #Without FeatureClass, it raises error.
-            transformer_list.append( (extracted_features[c]['name'], FeatureClass(extracted_features[c]['value'])) )
+        for name in combination:
+            transformer_list.append( (name, FeatureClass(extracted_features[name])) )
         return FeatureUnion(transformer_list=transformer_list)
     
 class FeatureClass(BaseEstimator):

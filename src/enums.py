@@ -29,3 +29,4 @@ class Feature():
     BERTWORD='bert_word'
     TEXTVEC='textvec'
     GENDERWORD='gender_word'
+    TOXICITY='toxicity'
