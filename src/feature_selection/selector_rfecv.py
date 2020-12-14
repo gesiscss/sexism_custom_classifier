@@ -18,7 +18,7 @@ class SelectorRFECV(BaseEstimator):
         print('SelectorRFECV fit ', x.shape, self.cv)
         #self.selector=RFECV(estimator=SVR(kernel="linear"), cv=2, scoring='accuracy').fit(x, y)
         sf=StratifiedKFold(n_splits=self.cv, random_state=self.random_state, shuffle=True)
-        self.selector=RFECV(estimator=LogisticRegression(), cv=sf, scoring='accuracy').fit(x, y)
+        self.selector=RFECV(estimator=LogisticRegression(max_iter=5000), cv=sf, scoring='accuracy').fit(x, y)
         print('£££ n_features_ selector.n_features_ ', self.selector.n_features_)
         return self
     

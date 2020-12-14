@@ -10,34 +10,19 @@
         "model__estimator__kernel":["linear","poly", "rbf"],
         "model__estimator__gamma":["scale"]
     },
-    "cnn_bert_word":
+    "cnn":
     {
-        "model__estimator__embedding_layer": [false],
-        "model__estimator__embedding_dim":[768],
-        "model__estimator__sequence_length":[46],
-        "model__estimator__num_filters": [8],
-        "model__estimator__num_epochs": [30],
-        "model__estimator__verbose":[0],
+        "model__estimator__num_filters": [100],
         "model__estimator__filter_sizes": [
-            { "items":[2,3,4], "__tuple__": true},
             { "items":[3,4,5], "__tuple__": true},
-            { "items":[2,3,4,5,6], "__tuple__": true}
-        ]
-    },
-    "cnn_textvec":
-    {
-        "model__estimator__embedding_layer": [true],
-        "model__estimator__embedding_dim":[150],
-        "model__estimator__sequence_length":[60],
-        "model__estimator__max_words":[3400],
-        "model__estimator__num_filters": [8],
+            { "items":[2,3,4], "__tuple__": true},
+            { "items":[2,3,4,5], "__tuple__": true}
+        ],
+        "model__estimator__optimizer": ["Adam"],
+        "model__estimator__print_model": [true],
         "model__estimator__num_epochs": [30],
-        "model__estimator__verbose":[0],
-        "model__estimator__filter_sizes": [
-            { "items":[2,3,4], "__tuple__": true},
-            { "items":[3,4,5], "__tuple__": true},
-            { "items":[2,3,4,5,6], "__tuple__": true}
-        ]
+        "model__estimator__batch_size": [50],
+        "model__estimator__verbose":[1]
     },
     "gender_word":
     {

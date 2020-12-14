@@ -127,7 +127,8 @@ class RunPipeline():
                     
                     for fs in features_set:
                         train_num=train_num+1
-                        param_grid=self.get_param_grid_model(model_name, fs['features'])
+                        param_grid=self.hyperparams.dict[model_name]
+                        
                         combination, features=fs['combination'], fs['features']
                         print('{}.{}/{} Running the pipeline for: {}, {}, {}'.format(i, train_num, len(features_set), 
                                                                                      model_name, combination, train_domain))
@@ -183,14 +184,6 @@ class RunPipeline():
             
         return 'FINISHED'
     
-    def get_param_grid_model(self, model_name, features):
-        if model_name != Model.CNN:
-            return self.hyperparams.dict[model_name]
-        else:
-            p=self.hyperparams.dict['_'.join((model_name, features[0]['name']))]
-            print(p)
-            return p
-    
     def get_models(self):
         valid_models=[Model.LR, Model.SVM, Model.CNN, Model.GENDERWORD, Model.THRESHOLDCLASSIFIER]
         models=list(set(self.params.dict['models'][0]).intersection(valid_models))
@@ -215,11 +208,7 @@ class RunPipeline():
         return self.get_feature_combinations(features, combination_range)
     
     def filter_features(self, valid_features, params_features):
-        features=[]
-        for k, v in params_features.items():
-            if v['name'] in valid_features:
-                features.append(v)
-        return features
+        return [v for k, v in params_features.items() if v['name'] in valid_features]
     
     def get_feature_combinations(self, features, feature_count):
         #1.Create index combinations
