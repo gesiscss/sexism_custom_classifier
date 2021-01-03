@@ -16,7 +16,7 @@ flags.DEFINE_string(
     "The .csv file that contains data.")
 
 def extract_features():
-    save_path = os.path.abspath('experiments/bert_embeddings') 
+    save_path = os.path.abspath('experiments') 
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
