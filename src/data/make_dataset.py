@@ -111,7 +111,7 @@ class MakeDataset:
         original_data=shuffle(original_data, random_state=0)
         return original_data
         
-    def downsample(self, df):
+    def downsample(self, df, random_state):
         '''Balances dataset by downsampling the majority class. 
            Uses sklearn resample method to downsample.
         '''
@@ -135,7 +135,7 @@ class MakeDataset:
         df_majority_downsampled = resample(df_majority, 
                                  replace=False,           # sample without replacement
                                  n_samples=n_samples,     # to match minority class
-                                 random_state=123)        # reproducible results
+                                 random_state=random_state)        # reproducible results
  
         # Combine minority class with downsampled majority class
         df_downsampled = pd.concat([df_majority_downsampled, df_minority])
@@ -161,18 +161,21 @@ class MakeDataset:
             
         return splits_original, splits_modified
     
-    def get_data_split(self, domain, splits_original, splits_modified, train=False, test=True):
+    def get_data_split(self, domain, splits_original, splits_modified, train=False, test=True, random_state=0):
         splits=splits_original if domain['modified'] == False else splits_modified
-        return self.get_balanced_data(domain, splits, train, test)
+        return self.get_balanced_data(domain, splits, train, test, random_state)
         
-    def get_balanced_data(self, data_domain, splits, train, test):
+    def get_balanced_data(self, data_domain, splits, train, test, random_state):
         col='X_train' if train else 'X_test' if test else ''
         
         X=pd.DataFrame()
         for domain in data_domain['dataset']:
-            X=pd.concat([X, self.downsample(splits[domain][col])])
+            X=pd.concat([X, splits[domain][col]])
+            
+        X=self.downsample(X, random_state)
+        #print(pd.DataFrame(X.groupby(['dataset', 'sexist']).size()))
     
-        X=shuffle(X, random_state=0)
+        X=shuffle(X, random_state=random_state)
         X.set_index('_id', inplace=True)
         X, y=X[['text', 'toxicity']], X['sexist'].ravel()
         

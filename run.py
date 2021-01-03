@@ -52,13 +52,12 @@ class RunPipeline():
                                             'param_grid', 'best_params', 
                                             'y_test', 'y_pred', 'y_test_ids'])
         
-        
     
-    def extract_features(self, splits_original, splits_modified, train_domain, test_domains):
+    def extract_features(self, splits_original, splits_modified, train_domain, test_domains, i):
         train_features, test_features=[],[]
         
         #1. Prepare train split for train_domain
-        X_train, y_train=self.make_dataset.get_data_split(train_domain, splits_original, splits_modified, train=True)
+        X_train, y_train=self.make_dataset.get_data_split(train_domain, splits_original, splits_modified, train=True, random_state=i)
         train_features={'train_domain':train_domain, 'X_train':X_train, 'y_train':y_train, 'extracted_features': {}}
         
         #2. Prepare test split for each test_domains
@@ -84,14 +83,14 @@ class RunPipeline():
             pipe.set_params(**fit_params)
             
             train_feature_list=train_features['extracted_features']
-            train_feature_list[name]=pipe.fit_transform(X_train, y_train)
+            train_feature_list['_'.join((k, name))]=pipe.fit_transform(X_train, y_train)
             train_features['extracted_features']=train_feature_list
                     
             
             #3.2 Extract test features for each test domain
             for t in test_features:
                 feature_list=t['extracted_features']
-                feature_list[name]=pipe.transform(t['X_test'])
+                feature_list['_'.join((k, name))]=pipe.transform(t['X_test'])
                 t['extracted_features']=feature_list
         
         return train_features, test_features
@@ -120,11 +119,13 @@ class RunPipeline():
             
             for train_domain in self.train_domains:
                 #Step 2. Extract Features
-                train_features, test_features=self.extract_features(splits_original, splits_modified, train_domain, self.test_domains)
+                train_features, test_features=self.extract_features(splits_original, splits_modified, train_domain, self.test_domains, i)
                         
                 for model_name, features_set in self.models.items():
                     train_num=0
                     
+                    #print('features_set ', features_set)
+                    print('extracted_features ', train_features['extracted_features'].keys())
                     for fs in features_set:
                         train_num=train_num+1
                         param_grid=self.hyperparams.dict[model_name]
@@ -135,10 +136,11 @@ class RunPipeline():
                         
                         # 4. Build Feature Union For Train
                         pb=PipelineBuilder()
+                        print('combination ', combination)
                         feature_union_train=pb.build_feature_union(combination, train_features['extracted_features'])
                         X_train, y_train=train_features['X_train'], train_features['y_train']
                         X_train=feature_union_train.fit_transform(X_train, y_train)
-                        #print('X_train.shape', X_train.shape)
+                        print('X_train.shape', X_train.shape)
                         
                         # 5. Fit
                         sf=StratifiedKFold(n_splits=5, random_state=0, shuffle=True)
@@ -197,9 +199,9 @@ class RunPipeline():
             valid_features=[Feature.TEXTVEC, Feature.BERTWORD]
             features=self.filter_features(valid_features, params_features)
         elif name == Model.GENDERWORD:
-            features=[{"name": Feature.GENDERWORD}]
+            features={Feature.GENDERWORD:{"name": Feature.GENDERWORD}}
         elif name == Model.THRESHOLDCLASSIFIER:
-            features=[{"name": Feature.TOXICITY}]
+            features={Feature.TOXICITY:{"name": Feature.TOXICITY}}
         else:
             valid_features=[Feature.SENTIMENT, Feature.NGRAM, Feature.TYPEDEPENDENCY, Feature.BERTDOC]
             features=self.filter_features(valid_features, params_features)
@@ -208,29 +210,33 @@ class RunPipeline():
         return self.get_feature_combinations(features, combination_range)
     
     def filter_features(self, valid_features, params_features):
-        return [v for k, v in params_features.items() if v['name'] in valid_features]
+        return {k:v for k, v in params_features.items() if v['name'] in valid_features}
     
     def get_feature_combinations(self, features, feature_count):
         #1.Create index combinations
         comb_list=[]
         for i in range(feature_count):
-            comb_list.extend(list(itertools.combinations(range(len(features)), (i+1))))
+            comb_list.extend(list(itertools.combinations(list(features.keys()), (i+1))))
+            #comb_list.extend(list(itertools.combinations(range(len(features)), (i+1))))
         
         #2.Create feature combination list by using index combinations
         feature_combinations=[]
         for combination in comb_list:
-            comb_features, feature_names=[], []
+            comb_features, feature_names, comb_feature_names=[], [], []
             for f in combination:
                 #To prevent adding same features in a combination (e.g. ngram (1,1) and ngram(1,4))
                 if features[f]['name'] in feature_names:
                     feature_names=[]
+                    comb_feature_names=[]
                     break
                 
                 feature_names.append(features[f]['name'])
                 
+                comb_feature_names.append('_'.join((str(f), features[f]['name'])))
                 comb_features.append(features[f])
+                
             if len(feature_names) > 0:
-                feature_combinations.append({'features': comb_features, 'combination': feature_names})
+                feature_combinations.append({'features': comb_features, 'combination': comb_feature_names})
         return feature_combinations
     
     def get_classification_report(self, y_true, y_pred):

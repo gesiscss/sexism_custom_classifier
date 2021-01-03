@@ -9,16 +9,10 @@ class PreprocessSentiment(BaseEstimator):
     def preprocess(self, text):
         try:
             upre=Preprocessing()
-            
-            text = upre.remove_new_lines(text)
-            text = upre.remove_URLs(text)
-            
-            text = upre.remove_usernames(text)
-            text = upre.replace_whitespace_with_single_space(text)
-        
-            text = upre.remove_RT(text)
-            text = upre.replace_whitespace_with_single_space(text)
-        
+            text=upre.remove_mention(text)
+            text=upre.remove_rt(text)
+            text=upre.remove_urls(text)
+            text=upre.remove_space(text)
             return text
         except Exception as e:
             print('text> {}'.format(text))
@@ -28,5 +22,4 @@ class PreprocessSentiment(BaseEstimator):
         return self
 
     def transform(self, raw_docs):
-        #return raw_docs.apply(lambda x: self.preprocess(x))
         return [self.preprocess(raw_doc) for raw_doc in raw_docs]

@@ -1,6 +1,5 @@
 #src module
 from src.utilities import Preprocessing
-from src.data.preprocessing.jha2017_preprocessing import preprocess as jha_preprocess
 
 #sklearn
 from sklearn.base import BaseEstimator
@@ -12,12 +11,17 @@ class PreprocessTypeDependency(BaseEstimator):
         try:
             upre=Preprocessing()
             
-            text=upre.remove_new_lines(text)
-            text=upre.replace_whitespace_with_single_space(text)
-            text=upre.remove_URLs(text)
-            text=upre.remove_usernames(text)
-            text=upre.remove_hashtags(text)
-            text=upre.clean_tweet(text)
+            text=upre.remove_emojis(text)
+            #text=upre.remove_hashtag(text)
+            text=upre.remove_mention(text)
+            text=upre.remove_rt(text)
+            text=upre.remove_urls(text)
+        
+            text=upre.remove_non_alnum(text)
+            text=upre.remove_space(text)
+            text=upre.lower_text(text)
+            text=upre.strip_text(text)
+            text=upre.compress_words(text)
             return text
         except Exception as e:
             print('text> {}'.format(text))
@@ -27,5 +31,4 @@ class PreprocessTypeDependency(BaseEstimator):
         return self
 
     def transform(self, raw_docs):
-        #return raw_docs.apply(lambda x: self.preprocess(x))
-        return raw_docs.apply(lambda x: jha_preprocess(x, False))
+        return raw_docs.apply(lambda x: self.preprocess(x))

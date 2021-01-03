@@ -6,7 +6,6 @@ from transformers import AutoConfig, AutoTokenizer, AutoModel
 
 #other
 import tensorflow as tf
-#import torch
 import pandas as pd
 from src import utilities as u
 import numpy as np
@@ -27,7 +26,6 @@ class BuildBERTFeature(BaseEstimator):
                                False : the generated representation for every token in the sequence
         return_tensors (string) : { 'tf', 'pt' }
         '''
-        #torch.set_grad_enabled(False)
         
         self.aggregated=aggregated
         self.model_name=model_name

@@ -2,6 +2,8 @@
 from sklearn.base import BaseEstimator
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+from nltk.corpus import stopwords
+
 class BuildNgramFeature(BaseEstimator):
     '''Extracts Ngram Features'''
     
@@ -14,8 +16,13 @@ class BuildNgramFeature(BaseEstimator):
         self.tfidf_vectorizer = None
     
     def fit(self, x, y=None):
-        #self.tfidf_vectorizer = TfidfVectorizer(ngram_range=self.ngram_range, preprocessor=' '.join).fit(x)
-        self.tfidf_vectorizer = TfidfVectorizer(ngram_range=self.ngram_range).fit(x)
+        stops = set(stopwords.words('english'))
+        stops.discard('not')
+        stops.discard('but')
+        
+        
+        self.tfidf_vectorizer = TfidfVectorizer(ngram_range=self.ngram_range, preprocessor=' '.join, stop_words=stops).fit(x)
+        #self.tfidf_vectorizer = TfidfVectorizer(ngram_range=self.ngram_range, stop_words=stops).fit(x)
         return self
 
     def transform(self, texts):

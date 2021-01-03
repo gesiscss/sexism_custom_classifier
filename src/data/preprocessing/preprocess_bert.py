@@ -10,22 +10,16 @@ class PreprocessBert(BaseEstimator):
         try:
             upre=Preprocessing()
             
-            text=upre.remove_new_lines(text)
-            text=upre.replace_whitespace_with_single_space(text)
-            text=upre.remove_URLs(text)
-            text=upre.remove_usernames(text)
-            text=upre.remove_hashtags(text)
-            text=upre.clean_tweet(text)
-            
-            tokens=upre.tokenize_tweettokenizer(text)
-    
-            tokens=[upre.lower_text(item) for item in tokens]
-            tokens=[upre.compress_words(item) for item in tokens]
-            text=' '.join(tokens)
-            #text=text.replace('..', '.')
-            
-            #tokens=text.split('.')
-            #text=list(filter(None, tokens))
+            text=upre.replace_emojis(text)
+            text=upre.remove_mention(text)
+            text=upre.remove_rt(text)
+            text=upre.remove_urls(text)
+        
+            text=upre.remove_non_alnum(text)
+            text=upre.remove_space(text)
+            text=upre.lower_text(text)
+            text=upre.strip_text(text)
+            text=upre.compress_words(text)
             
             return text
         except Exception as e:

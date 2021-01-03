@@ -1,8 +1,8 @@
-#Extracts and saves BERT embeddings by using all data.
+#Extracts and saves type dependency features by using all data.
 
 from src.data.make_dataset import MakeDataset
 from src.data.preprocessing.preprocess_type_dependency import PreprocessTypeDependency
-from src.feature_extraction.build_type_dependency_features_new import BuildTypeDependencyFeature
+from src.feature_extraction.build_type_dependency_features import BuildTypeDependencyFeature
 from src.enums import * 
 import os
 from absl import app, flags
@@ -21,7 +21,7 @@ flags.DEFINE_string(
 
 
 def extract_features():
-    save_path = os.path.abspath('type_dependencies') 
+    save_path = os.path.abspath('experiments') 
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
@@ -33,13 +33,11 @@ def extract_features():
     preprocessed=PreprocessTypeDependency().transform(data.text)
     
     # 3. Extract features and then save
-    file_name=BuildTypeDependencyFeature(model_path=FLAGS.model_path, extract=True, save_path=save_path).fit(preprocessed)
+    BuildTypeDependencyFeature(model_path=FLAGS.model_path, save_path=save_path, extract=True).fit(preprocessed)
     
-    return file_name
-
 def main(argv):
-    file_name=extract_features()
-    print(file_name)
+    extract_features()
+    print('FINISHED')
 
 if __name__ == '__main__':
     # Required flag.
