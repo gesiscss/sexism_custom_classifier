@@ -47,6 +47,7 @@ class RunPipeline():
         self.iteration=self.params.dict['iteration']
         self.train_domains=self.params.dict['train_domains'][0]
         self.test_domains=self.params.dict['test_domains'][0]
+        self.all_domains=self.params.dict['all_domains']
         self.models=self.get_models()
         self.results_df = pd.DataFrame(columns=['iteration','train_domain', 'test_domain', 'model_name', 'features',
                                             'param_grid', 'best_params', 
@@ -125,7 +126,7 @@ class RunPipeline():
                     train_num=0
                     
                     #print('features_set ', features_set)
-                    print('extracted_features ', train_features['extracted_features'].keys())
+                    #print('extracted_features ', train_features['extracted_features'].keys())
                     for fs in features_set:
                         train_num=train_num+1
                         param_grid=self.hyperparams.dict[model_name]
@@ -136,7 +137,8 @@ class RunPipeline():
                         
                         # 4. Build Feature Union For Train
                         pb=PipelineBuilder()
-                        print('combination ', combination)
+                        #print('combination ', combination)
+                        
                         feature_union_train=pb.build_feature_union(combination, train_features['extracted_features'])
                         X_train, y_train=train_features['X_train'], train_features['y_train']
                         X_train=feature_union_train.fit_transform(X_train, y_train)
@@ -187,9 +189,21 @@ class RunPipeline():
         return 'FINISHED'
     
     def get_models(self):
-        valid_models=[Model.LR, Model.SVM, Model.CNN, Model.GENDERWORD, Model.THRESHOLDCLASSIFIER]
-        models=list(set(self.params.dict['models'][0]).intersection(valid_models))
-        return {name:self.get_model_features(name) for name in models}
+        if self.all_domains:
+            retVal={}
+            params_features=self.params.dict['features']
+            models=self.params.dict['models']
+            for k, v in models.items():
+                bf={}
+                for f in v['best_features']:
+                    bf[f]=params_features[f]
+                
+                retVal[v['name'][0]]=self.get_feature_combinations(bf, comb_max=len(bf), comb_min=len(bf)-1)
+            return retVal
+        else:
+            valid_models=[Model.LR, Model.SVM, Model.CNN, Model.GENDERWORD, Model.THRESHOLDCLASSIFIER]
+            models=list(set(self.params.dict['models'][0]).intersection(valid_models))
+            return {name:self.get_model_features(name) for name in models}
         
     def get_model_features(self, name):
         params_features=self.params.dict['features']
@@ -212,10 +226,10 @@ class RunPipeline():
     def filter_features(self, valid_features, params_features):
         return {k:v for k, v in params_features.items() if v['name'] in valid_features}
     
-    def get_feature_combinations(self, features, feature_count):
+    def get_feature_combinations(self, features, comb_max, comb_min=0):
         #1.Create index combinations
         comb_list=[]
-        for i in range(feature_count):
+        for i in range(comb_min, comb_max):
             comb_list.extend(list(itertools.combinations(list(features.keys()), (i+1))))
             #comb_list.extend(list(itertools.combinations(range(len(features)), (i+1))))
         

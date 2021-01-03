@@ -2,7 +2,6 @@
 from src import utilities as u
 from src.enums import *
 from src.utilities import Preprocessing
-from src.data.preprocessing.preprocess_type_dependency import PreprocessTypeDependency
 
 #sklearn
 from sklearn.model_selection import ShuffleSplit
@@ -19,12 +18,32 @@ class MakeDataset:
         '''Reads raw data from the full path.'''
         return u.read_csv(full_path, delimiter=delimiter)
 
+    def preprocess(self, text):
+        try:
+            upre=Preprocessing()
+            
+            text=upre.remove_emojis(text)
+            text=upre.remove_hashtag(text)
+            text=upre.remove_mention(text)
+            text=upre.remove_rt(text)
+            text=upre.remove_urls(text)
+        
+            text=upre.remove_non_alnum(text)
+            text=upre.remove_space(text)
+            text=upre.lower_text(text)
+            text=upre.strip_text(text)
+            text=upre.compress_words(text)
+            return text
+        except Exception as e:
+            print('text> {}'.format(text))
+            raise Exception(e)
+    
     def preprocess_data(self, data):
         data=data[~data.sexist.isnull()]
         data=data[data.text.notna()]
         data=data[data.text != '']
         
-        data['preprocessed']=PreprocessTypeDependency().transform(data.text)
+        data['preprocessed']=data.text.apply(lambda x: self.preprocess(x))
         data=data[data.preprocessed != '']
         data['sexist'] = data.copy()['sexist'].astype(int)
         return data
