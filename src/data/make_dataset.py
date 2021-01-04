@@ -106,9 +106,10 @@ class MakeDataset:
     
         #Step 2.Retrieve the modified version of sexist examples on step 1
         adversarial_examples = adversarial_examples[adversarial_examples['of_id'].isin(sexist['_id'])]  
-        #There might be more than one modified example for a sexist tweet. Select the first one.
-        adversarial_examples = adversarial_examples.drop_duplicates(subset ='of_id', keep = 'first')
-        
+        if len(adversarial_examples) > sample_count:
+            #There might be more than one modified example for a sexist tweet. Select the first one.
+            adversarial_examples = adversarial_examples.drop_duplicates(subset ='of_id', keep = 'first')
+            
         #Step 3.Discard a corresponding number of non-sexist examples from the original data set. (to maintain equal size)
         non_sexist = original_data[original_data['sexist'] == 0].head(len(adversarial_examples))
         original_data = original_data[~original_data['_id'].isin(non_sexist['_id'])]
@@ -127,8 +128,7 @@ class MakeDataset:
         ##########################################################################
         
         #Step 5.Shuffle
-        original_data=shuffle(original_data, random_state=0)
-        return original_data
+        return shuffle(original_data, random_state=0)
         
     def downsample(self, df, random_state):
         '''Balances dataset by downsampling the majority class. 
@@ -165,35 +165,36 @@ class MakeDataset:
         original_data = self.get_original_data(data)
         adversarial_examples = self.get_adversarial_examples(data)
         
-        dataset_list=[Dataset.BENEVOLENT, Dataset.HOSTILE, Dataset.OTHER, Dataset.CALLME, Dataset.SCALES]
+        domain_list=[{'name': 'BHO', 'value':Domain.BHO},
+                     {'name': 'BHOCS', 'value':Domain.BHOCS},
+                     {'name': 'C', 'value':Domain.C},
+                     {'name': 'S', 'value':Domain.S}]
         
-        splits_original, splits_modified={}, {}
-        for dataset in dataset_list:
-            X=original_data[original_data.dataset == dataset]
+        splits={}
+        for domain in domain_list:
+            X = original_data[original_data.dataset.isin(domain['value']['dataset'])]
+            
+            #1.Balance
+            X=self.downsample(X, random_state)
+            
+            #2.Split
             X_train, X_test=self.get_splits(X, n_splits=1, test_size=0.3, random_state=random_state)
             
-            splits_original[dataset]={'X_train':X_train, 'X_test':X_test}
-            splits_modified[dataset]={
+            splits[domain['name']]={'X_train':X_train, 'X_test':X_test}
+            
+            #3.Adversarial Injection
+            splits[''.join((domain['name'], 'M'))]={
                 'X_train':self.get_modified_data(X_train, adversarial_examples, 0.5), 
                 'X_test':self.get_modified_data(X_test, adversarial_examples, 1)
             }
             
-        return splits_original, splits_modified
+        return splits
     
-    def get_data_split(self, domain, splits_original, splits_modified, train=False, test=True, random_state=0):
-        splits=splits_original if domain['modified'] == False else splits_modified
-        return self.get_balanced_data(domain, splits, train, test, random_state)
-        
-    def get_balanced_data(self, data_domain, splits, train, test, random_state):
+    def get_data_split(self, domain_name, splits, train=False, test=True, random_state=0):
         col='X_train' if train else 'X_test' if test else ''
         
-        X=pd.DataFrame()
-        for domain in data_domain['dataset']:
-            X=pd.concat([X, splits[domain][col]])
-            
-        X=self.downsample(X, random_state)
-        #print(pd.DataFrame(X.groupby(['dataset', 'sexist']).size()))
-    
+        X=splits[domain_name][col]
+        
         X=shuffle(X, random_state=random_state)
         X.set_index('_id', inplace=True)
         X, y=X[['text', 'toxicity']], X['sexist'].ravel()

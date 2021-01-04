@@ -128,7 +128,7 @@ def object_hook_method(obj):
         elif '__model__' in obj:
             return [getattr(Model, model) for model in obj['items']]
         elif '__domain__' in obj:
-            return [getattr(Domain, domain) for domain in obj['items']]
+            return [{'name':domain , 'value':getattr(Domain, domain)} for domain in obj['items']]
         elif '__feature__' in obj:
             return getattr(Feature, obj['item'])
         else:

@@ -54,17 +54,19 @@ class RunPipeline():
                                             'y_test', 'y_pred', 'y_test_ids'])
         
     
-    def extract_features(self, splits_original, splits_modified, train_domain, test_domains, i):
+    def extract_features(self, splits, train_domain, test_domains, i, train_domain_name):
         train_features, test_features=[],[]
         
         #1. Prepare train split for train_domain
-        X_train, y_train=self.make_dataset.get_data_split(train_domain, splits_original, splits_modified, train=True, random_state=i)
+        X_train, y_train=self.make_dataset.get_data_split(train_domain_name, splits, train=True, random_state=i)
         train_features={'train_domain':train_domain, 'X_train':X_train, 'y_train':y_train, 'extracted_features': {}}
         
         #2. Prepare test split for each test_domains
         test_features=[]
-        for test_domain in self.test_domains:
-            X_test, y_test=self.make_dataset.get_data_split(test_domain, splits_original, splits_modified, test=True)
+        for td in self.test_domains:
+            test_domain_name=td['name']
+            test_domain=td['value']
+            X_test, y_test=self.make_dataset.get_data_split(test_domain_name, splits, test=True, random_state=i)
             test_features.append({'test_domain':test_domain, 'X_test':X_test, 'y_test':y_test, 'extracted_features': {}})
         
         #3. Extract train and test features
@@ -116,11 +118,13 @@ class RunPipeline():
         
         for i in self.iteration:
             
-            splits_original, splits_modified=self.make_dataset.prepare_data_splits(data, random_state=i)
+            splits=self.make_dataset.prepare_data_splits(data, random_state=i)
             
-            for train_domain in self.train_domains:
+            for td in self.train_domains:
+                train_domain_name=td['name']
+                train_domain=td['value']
                 #Step 2. Extract Features
-                train_features, test_features=self.extract_features(splits_original, splits_modified, train_domain, self.test_domains, i)
+                train_features, test_features=self.extract_features(splits, train_domain, self.test_domains, i, train_domain_name)
                         
                 for model_name, features_set in self.models.items():
                     train_num=0
