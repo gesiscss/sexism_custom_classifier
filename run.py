@@ -136,8 +136,8 @@ class RunPipeline():
                         param_grid=self.hyperparams.dict[model_name]
                         
                         combination, features=fs['combination'], fs['features']
-                        print('{}.{}/{} Running the pipeline for: {}, {}, {}'.format(i, train_num, len(features_set), 
-                                                                                     model_name, combination, train_domain))
+                        print('{}.{}/{} Running the pipeline for: {}, {}, {}'.format(
+                            i, train_num, len(features_set), model_name, combination, train_domain_name))
                         
                         # 4. Build Feature Union For Train
                         pb=PipelineBuilder()
