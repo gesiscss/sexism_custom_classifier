@@ -10,6 +10,7 @@ class PreprocessNgram(BaseEstimator):
     def preprocess(self, text):
         upre=Preprocessing()
         
+        text=upre.decompose_hashtags(text)
         text=upre.replace_emojis(text)
         text=upre.remove_mention(text)
         text=upre.remove_rt(text)
