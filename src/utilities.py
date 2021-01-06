@@ -42,21 +42,13 @@ porter_stemmer = PorterStemmer()
 import re
 import string
 import emoji
-import splitter
 
 class Preprocessing():
     def tokenize_tweettokenizer(self, text):
         return tweet_tokenizer.tokenize(text)
-        
 
     def stem_porter(self, text):
         return porter_stemmer.stem(text)
-
-    def decompose_hashtags(self, text):
-        tags=re.findall(r'#\w+ ?', text)
-        for ht in tags:
-            text=re.sub(ht, ' '.join(splitter.split(ht[1:])), text)
-        return text
 
     def remove_emojis(self, text, replace=' '):
         emoji_pattern = re.compile("["
