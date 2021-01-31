@@ -130,9 +130,13 @@ class BuildTypeDependencyFeature(BaseEstimator):
         else:
             x=self.get_features_from_file(x)
             self.vectorizer = TfidfVectorizer(ngram_range=self.ngram_range).fit(x)
+            self.feature_dimension=len(self.get_feature_names())
         
         return self
 
     def transform(self, texts):
         texts=self.get_features_from_file(texts)
         return self.vectorizer.transform(texts)
+    
+    def get_feature_names(self):
+        return self.vectorizer.get_feature_names()

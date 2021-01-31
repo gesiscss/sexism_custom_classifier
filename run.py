@@ -49,67 +49,22 @@ class RunPipeline():
         self.test_domains=self.params.dict['test_domains'][0]
         self.all_domains=self.params.dict['all_domains']
         self.models=self.get_models()
-        self.results_df = pd.DataFrame(columns=['iteration','train_domain', 'test_domain', 'model_name', 'features',
-                                            'param_grid', 'best_params', 
-                                            'y_test', 'y_pred', 'y_test_ids'])
+        self.use_grid_search=self.params.dict['use_grid_search']
+        self.results_df = pd.DataFrame(columns=['iteration','train_domain', 'test_domain', 'model_name', 'features', 
+                                                'feature_dimensions',
+                                                'param_grid', 'best_params',
+                                                'y_test', 'y_pred', 'y_test_ids'])
         
-    
-    def extract_features(self, splits, train_domain, test_domains, i, train_domain_name):
-        train_features, test_features=[],[]
-        
-        #1. Prepare train split for train_domain
-        X_train, y_train=self.make_dataset.get_data_split(train_domain_name, splits, train=True, random_state=i)
-        train_features={'train_domain':train_domain, 'X_train':X_train, 'y_train':y_train, 'extracted_features': {}}
-        
-        #2. Prepare test split for each test_domains
-        test_features=[]
-        for td in self.test_domains:
-            test_domain_name=td['name']
-            test_domain=td['value']
-            X_test, y_test=self.make_dataset.get_data_split(test_domain_name, splits, test=True, random_state=i)
-            test_features.append({'test_domain':test_domain, 'X_test':X_test, 'y_test':y_test, 'extracted_features': {}})
-        
-        #3. Extract train and test features
-        params_features=self.params.dict['features']
-        
-        #Baseline pipelines
-        params_features[Feature.GENDERWORD]={'name':Feature.GENDERWORD,'feature_selection':False,'feature_pipeline_params':{}}
-        params_features[Feature.TOXICITY]={'name':Feature.TOXICITY,'feature_selection':False,'feature_pipeline_params':{}}
-        
-        for k, v in params_features.items():
-            feature_selection, name=v['feature_selection'], v['name']
-                        
-            #3.1 Extract train features
-            fit_params=v['feature_pipeline_params']
-            
-            pipe=PipelineBuilder().build_feature_pipeline(name, feature_selection)
-            pipe.set_params(**fit_params)
-            
-            train_feature_list=train_features['extracted_features']
-            train_feature_list['_'.join((k, name))]=pipe.fit_transform(X_train, y_train)
-            train_features['extracted_features']=train_feature_list
-                    
-            
-            #3.2 Extract test features for each test domain
-            for t in test_features:
-                feature_list=t['extracted_features']
-                feature_list['_'.join((k, name))]=pipe.transform(t['X_test'])
-                t['extracted_features']=feature_list
-        
-        return train_features, test_features
     
     @execution_time_calculator
     def run(self):
         '''Runs the steps below.
         Step 1. Read data
-        Step 2. Extract Features
-        Step 3. Build Feature Union For Train
-        Step 4. Build Model Pipeline
-        Step 5. Fit with sklearn GridSearchCV
-        Step 6. Predict
-                6.1 Build Feature Union For Test
-                6.2 Predict
-        Step 7. Get and save classification report
+        Step 2. Prepare train split for train_domain
+        Step 3. Build Pipeline
+        Step 4. Fit
+        Step 5. Predict
+        Step 6. Get and save classification report
         '''
         self.prepare_parameters()
         
@@ -123,62 +78,60 @@ class RunPipeline():
             for td in self.train_domains:
                 train_domain_name=td['name']
                 train_domain=td['value']
-                #Step 2. Extract Features
-                train_features, test_features=self.extract_features(splits, train_domain, self.test_domains, i, train_domain_name)
+                
+                #Step 2. Prepare train split for train_domain
+                X_train, y_train= self.make_dataset.get_data_split(train_domain_name, splits, train=True, random_state=i)
                         
                 for model_name, features_set in self.models.items():
                     train_num=0
                     
-                    #print('features_set ', features_set)
-                    #print('extracted_features ', train_features['extracted_features'].keys())
-                    for fs in features_set:
+                    for f in features_set:
                         train_num=train_num+1
-                        param_grid=self.hyperparams.dict[model_name]
+                        features, param_grid_features=f['features'], f['param_grid']
+                        param_grid=param_grid_features
                         
-                        combination, features=fs['combination'], fs['features']
                         print('{}.{}/{} Running the pipeline for: {}, {}, {}'.format(
-                            i, train_num, len(features_set), model_name, combination, train_domain_name))
+                            i, train_num, len(features_set), model_name, [k['comb_name'] for k in features], train_domain_name))
                         
-                        # 4. Build Feature Union For Train
-                        pb=PipelineBuilder()
-                        #print('combination ', combination)
+                        # Step 3. Build Pipeline
+                        pipeline=PipelineBuilder(features, model_name).build_pipeline()
+                       
+                        gs=pipeline
+                        if self.use_grid_search:
+                            sf=StratifiedKFold(n_splits=5, random_state=0, shuffle=True)
+                            gs=GridSearchCV(pipeline, param_grid=param_grid, cv=sf, scoring='f1_macro', n_jobs=-1)
+                        else:
+                            gs.set_params(**param_grid)
                         
-                        feature_union_train=pb.build_feature_union(combination, train_features['extracted_features'])
-                        X_train, y_train=train_features['X_train'], train_features['y_train']
-                        X_train=feature_union_train.fit_transform(X_train, y_train)
-                        print('X_train.shape', X_train.shape)
+                        # Step 4. Fit
+                        gs.fit(X_train, y_train)
                         
-                        # 5. Fit
-                        sf=StratifiedKFold(n_splits=5, random_state=0, shuffle=True)
-                        pipeline_g=pb.build_model_pipeline(model_name)
-                        grid_search = GridSearchCV(pipeline_g, param_grid=param_grid, cv=sf, scoring='f1_macro', n_jobs=-1)
-                        grid_search.fit(X_train, y_train)
-                        
-                        # 6. Predict
-                        for t in test_features:
-                            # 6.1 Build Feature Union For Test
-                            feature_union_test=pb.build_feature_union(combination, t['extracted_features'])
+                        for test_domain in self.test_domains:
+                            test_domain_name=test_domain['name']
                             
-                            X_test, y_test, test_domain=t['X_test'], t['y_test'], t['test_domain']
-                            y_test_ids=X_test.copy().reset_index()['_id']
-                            X_test=feature_union_test.fit_transform(X_test)
-                            #print('X_test.shape', X_test.shape)
+                            X_test, y_test=self.make_dataset.get_data_split(test_domain_name, splits, test=True, random_state=i)
+                            y_test_ids=X_test.copy().reset_index()
                             
-                            # 6.2 Predict
-                            y_pred=grid_search.predict(X_test)
+                            
+                            # Step 5. Predict
+                            y_pred=gs.predict(X_test)
+                            
+                            feature_dimensions = self.get_feature_dimensions(gs.best_estimator_)
+                            #print(feature_dimensions)
                             
                             self.results_df=self.results_df.append({
                                                   'iteration':'.'.join((str(i), str(train_num))),
-                                                  'train_domain':train_domain, 'test_domain':test_domain, 
-                                                  'model_name':model_name, 'features':features, 
+                                                  'train_domain':train_domain_name, 'test_domain':test_domain_name, 
+                                                  'model_name':model_name, 'features':features,
+                                                  'feature_dimensions':feature_dimensions,
                                                   'param_grid':param_grid, 
-                                                  'best_params': grid_search.best_params_, 
+                                                  'best_params': gs.best_params_ if self.use_grid_search else param_grid, 
                                                   'y_test':y_test, 'y_pred':y_pred, 
                                                   'y_test_ids':y_test_ids }, 
                                                   ignore_index=True)
                             
                             
-            # Step 7. Get and save classification report  
+            # Step 6. Get and save classification report  
             metrics_df=self.results_df.apply(lambda r: self.get_classification_report(r['y_test'], r['y_pred']), axis=1)
         
             results_df=pd.concat((self.results_df, metrics_df), axis=1)
@@ -192,71 +145,149 @@ class RunPipeline():
             
         return 'FINISHED'
     
+    def get_models_rq2(self):
+        return
+    
     def get_models(self):
         if self.all_domains:
-            retVal={}
-            params_features=self.params.dict['features']
-            models=self.params.dict['models']
-            for k, v in models.items():
-                bf={}
-                for f in v['best_features']:
-                    bf[f]=params_features[f]
+            return self.get_models_rq2()
+        else:
+            return self.get_models_rq1()
+        
+    
+    def get_models_rq1(self):
+        valid_models=[Model.LR, Model.SVM, Model.CNN, Model.GENDERWORD, Model.THRESHOLDCLASSIFIER]
+        params_models=list(set(self.params.dict['models'][0]).intersection(valid_models))
+        
+        models={}
+        for name in params_models:
+            features=[]
+            
+            if name == Model.CNN:
+                features=self.get_cnn_features()
+                #elif name == Model.GENDERWORD or name == Model.THRESHOLDCLASSIFIER:
+                #    features=self.get_baseline_features()
+            elif name == Model.SVM or name == Model.LR:
+                features=self.get_svm_and_logit_features(name)
+            else:
+                features=[
+                    {'features':
+                     [{'name':'baseline',
+                       'feature_selection':False}],
+                     'param_grid':self.hyperparams.dict[name]}]
                 
-                retVal[v['name'][0]]=self.get_feature_combinations(bf, comb_max=len(bf), comb_min=len(bf)-1)
-            return retVal
-        else:
-            valid_models=[Model.LR, Model.SVM, Model.CNN, Model.GENDERWORD, Model.THRESHOLDCLASSIFIER]
-            models=list(set(self.params.dict['models'][0]).intersection(valid_models))
-            return {name:self.get_model_features(name) for name in models}
-        
-    def get_model_features(self, name):
+            #models[name]={'features_set':features, 'param_grid_model':self.hyperparams.dict[name]}
+            models[name]=features
+        #print('$$$$$ models   ', models)
+        return models
+    
+    #def get_baseline_features(self):
+    #    return [{'features':[{'name':'baseline', 'feature_selection':False}], 'param_grid':{}}]
+    
+    def get_cnn_features(self):
         params_features=self.params.dict['features']
-        combination_range=1
         
-        if name == Model.CNN:
-            valid_features=[Feature.TEXTVEC, Feature.BERTWORD]
-            features=self.filter_features(valid_features, params_features)
-        elif name == Model.GENDERWORD:
-            features={Feature.GENDERWORD:{"name": Feature.GENDERWORD}}
-        elif name == Model.THRESHOLDCLASSIFIER:
-            features={Feature.TOXICITY:{"name": Feature.TOXICITY}}
-        else:
-            valid_features=[Feature.SENTIMENT, Feature.NGRAM, Feature.TYPEDEPENDENCY, Feature.BERTDOC]
-            features=self.filter_features(valid_features, params_features)
-            combination_range=len(features)
+        #valid_features=[Feature.TEXTVEC, Feature.BERTWORD]
+        valid_features=[Feature.BERTWORD]
         
-        return self.get_feature_combinations(features, combination_range)
+        features=[]
+        for k, v in params_features.items():
+            name=v['name']
+            if name in valid_features:
+                #print('elif  ', ''.join((Model.CNN, '_', name)))
+                param_grid_model=self.hyperparams.dict[''.join((Model.CNN, '_', name))]
+                features.append({
+                    'features':{'name':name, 'feature_selection':v['feature_selection']}, 
+                    'param_grid':{**v['param_grid'], **param_grid_model}
+                })
+        
+        #features=self.get_features(valid_features)
+        return [{'features':[i['features']], 'param_grid':i['param_grid']} for i in features] 
     
-    def filter_features(self, valid_features, params_features):
-        return {k:v for k, v in params_features.items() if v['name'] in valid_features}
+    def get_svm_and_logit_features(self, model):
+        valid_features=[Feature.SENTIMENT, Feature.NGRAM, Feature.TYPEDEPENDENCY, Feature.BERTDOC]
+        features=self.get_features(valid_features)
+        
+        #Return feature combinations
+        return self.get_feature_combinations(features, model)
     
-    def get_feature_combinations(self, features, comb_max, comb_min=0):
+    def get_features(self, valid_features):
+        params_features=self.params.dict['features']
+        
+        features={}
+        for k, v in params_features.items():
+            name=v['name']
+            if name in valid_features:
+                features[k]={
+                    'features':{'name':name, 'feature_selection':v['feature_selection']}, 
+                    'param_grid':v['param_grid']
+                }
+         
+        return features
+    
+    def get_feature_combinations(self, features, model):
+        param_grid_model=self.hyperparams.dict[model]
+        
         #1.Create index combinations
         comb_list=[]
-        for i in range(comb_min, comb_max):
+        feature_count=len(features)
+        for i in range(feature_count):
             comb_list.extend(list(itertools.combinations(list(features.keys()), (i+1))))
-            #comb_list.extend(list(itertools.combinations(range(len(features)), (i+1))))
         
         #2.Create feature combination list by using index combinations
         feature_combinations=[]
         for combination in comb_list:
-            comb_features, feature_names, comb_feature_names=[], [], []
+            comb_features, feature_names=[], []
+            param_grid_features={}
+    
             for f in combination:
-                #To prevent adding same features in a combination (e.g. ngram (1,1) and ngram(1,4))
-                if features[f]['name'] in feature_names:
+                #Prevent adding same features in a combination (e.g. ngram (1,1) and ngram(1,2))
+                if features[f]['features']['name'] in feature_names:
                     feature_names=[]
                     comb_feature_names=[]
                     break
                 
-                feature_names.append(features[f]['name'])
+                feature_names.append(features[f]['features']['name'])
+                features[f]['features']['comb_name']='_'.join((str(f), features[f]['features']['name']))
                 
-                comb_feature_names.append('_'.join((str(f), features[f]['name'])))
-                comb_features.append(features[f])
-                
+                comb_features.append(features[f]['features'])
+                param_grid_feature=self.format_param_grid(features[f]['features']['comb_name'], features[f]['param_grid'])
+                param_grid_features.update(param_grid_feature)
             if len(feature_names) > 0:
-                feature_combinations.append({'features': comb_features, 'combination': comb_feature_names})
+                feature_combinations.append(
+                    {'features': comb_features, 'param_grid': {**param_grid_features, **param_grid_model}})
+        
         return feature_combinations
     
+    def format_param_grid(self, comb_name, param_grid):
+        param_grid_feature={}
+        for key, val in param_grid.items():
+            name='__'.join(('features', comb_name, key))
+            param_grid_feature[name]=val
+        return param_grid_feature
+    
+    def get_feature_dimensions(self, best_estimator):
+        feature_dimensions={}
+        
+        total=best_estimator.steps[1][1].feature_dimension
+        feature_dimensions['total']=total
+        
+        tl=best_estimator.steps[0][1].transformer_list
+        for p in tl:
+            steps=p[1].steps
+            #Includes feature selection
+            if len(steps) == 4:
+                feature_dimensions[p[0][2:]]={
+                    'dimension':steps[3][1].feature_dimension,
+                    'reduced':steps[3][1].k
+                }
+            elif len(steps) == 3:
+                feature_dimensions[p[0][2:]]={
+                    'dimension':steps[2][1].feature_dimension
+                }
+                
+        return feature_dimensions
+        
     def get_classification_report(self, y_true, y_pred):
         target_names = ['nonsexist', 'sexist']
         classification_dict =  classification_report(y_true, y_pred, target_names=target_names, output_dict=True)

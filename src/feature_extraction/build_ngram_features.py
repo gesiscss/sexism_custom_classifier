@@ -14,6 +14,7 @@ class BuildNgramFeature(BaseEstimator):
         '''
         self.ngram_range=ngram_range
         self.tfidf_vectorizer = None
+        self.feature_dimension=0
     
     def fit(self, x, y=None):
         stops = set(stopwords.words('english'))
@@ -23,6 +24,7 @@ class BuildNgramFeature(BaseEstimator):
         
         self.tfidf_vectorizer = TfidfVectorizer(ngram_range=self.ngram_range, preprocessor=' '.join, stop_words=stops).fit(x)
         #self.tfidf_vectorizer = TfidfVectorizer(ngram_range=self.ngram_range, stop_words=stops).fit(x)
+        self.feature_dimension=len(self.get_feature_names())
         return self
 
     def transform(self, texts):

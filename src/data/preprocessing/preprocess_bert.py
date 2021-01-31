@@ -6,11 +6,13 @@ from sklearn.base import BaseEstimator
 
 class PreprocessBert(BaseEstimator):
     '''Preporcesses data for BERT document embedding features.'''
+    
     def preprocess(self, text):
         try:
             upre=Preprocessing()
             
-            text=upre.replace_emojis(text)
+            text=upre.remove_emojis(text)
+            text=upre.remove_hashtag(text)
             text=upre.remove_mention(text)
             text=upre.remove_rt(text)
             text=upre.remove_urls(text)

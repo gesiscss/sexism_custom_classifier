@@ -101,4 +101,5 @@ class BuildBERTFeature(BaseEstimator):
         for i in range(len(texts)):
             embedding_list.append(filtered_df.loc[texts.index[i]].embedding)
         
+        self.feature_dimension=embedding_list[0].shape[0]
         return tf.convert_to_tensor(embedding_list, dtype=tf.float32)

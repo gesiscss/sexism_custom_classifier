@@ -10,6 +10,7 @@ class BuildSentimentFeature(BaseEstimator):
     def __init__(self, score_names=['neg', 'neu', 'pos', 'compound']):
         self.score_names=score_names
         self.sid = SentimentIntensityAnalyzer()
+        self.feature_dimension=len(self.score_names)
         
     def get_polarity_scores(self, text):
         '''Retrieves combineed polarity scores of text (neutral and compoound scores). 
