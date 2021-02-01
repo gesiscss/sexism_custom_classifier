@@ -1,14 +1,13 @@
 {
-    "data_file":"/Users/ezgidaldal/sexism_custom_classifier/files/all_data_augmented.csv",
+    "data_file":"/path/all_data_augmented.csv",
     "iteration":[1,2,3,4,5],
-    "train_domains":[{ "items":["BHOCS"], "__domain__": true}],
-    "test_domains":[{ "items":["BHOCS"], "__domain__": true}],
+    "train_domains":[{ "items":["BHO", "BHOM", "BHOCS", "BHOCSM", "C", "CM"], "__domain__": true}],
+    "test_domains":[{ "items":["BHO", "BHOM", "BHOCS", "BHOCSM", "C", "CM", "S"], "__domain__": true}],
     "all_domains":true,
     "use_grid_search":true,
     "feature_combination":true,
     "models":
     {
-        "BHO", "BHOM", "BHOCS", "BHOCSM", "C", "CM", "S"
         "1":
         {
             "name":{ "items":["GENDERWORD"], "__model__": true}
@@ -53,7 +52,7 @@
                     "param_grid": {
                     "feature_extraction__ngram_range": [{ "items":[1, 1], "__tuple__": true}],
                     "feature_extraction__type_dep_file_name":
-                  ["/Users/ezgidaldal/sexism_custom_classifier/files/type_dependencies.pkl"],
+                  ["/path/type_dependencies.pkl"],
                     "feature_selection__k":[13000]    
                 }
         },
@@ -64,7 +63,7 @@
                     "param_grid": {
                     "feature_extraction__ngram_range": [{ "items":[1, 1], "__tuple__": true}],
                     "feature_extraction__type_dep_file_name":
-                  ["/Users/ezgidaldal/sexism_custom_classifier/files/type_dependencies.pkl"]
+                  ["/path/type_dependencies.pkl"]
                 }
         },
         "5":
@@ -73,7 +72,7 @@
             "feature_selection":false,
             "param_grid": {
                 "feature_extraction__embedding_file_name":
-                ["/Users/ezgidaldal/sexism_custom_classifier/files/doc_embeddings.pkl"]
+                ["/path/doc_embeddings.pkl"]
             }
         },
         "6":
@@ -82,7 +81,7 @@
             "feature_selection":true,
             "param_grid": {
                 "feature_extraction__embedding_file_name":
-                ["/Users/ezgidaldal/sexism_custom_classifier/files/doc_embeddings.pkl"],
+                ["/path/doc_embeddings.pkl"],
                 "feature_selection__k":[600]
             }
         },

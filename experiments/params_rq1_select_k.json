@@ -1,5 +1,5 @@
 {
-    "data_file":"/Users/ezgidaldal/sexism_custom_classifier/files/all_data_augmented.csv",
+    "data_file":"/path/all_data_augmented.csv",
     "iteration":[1],
     "train_domains":[{ "items":["BHOCS"], "__domain__": true}],
     "test_domains":[{ "items":["BHOCS"], "__domain__": true}],
@@ -36,7 +36,7 @@
             "param_grid": {
                 "feature_extraction__ngram_range": [{ "items":[1, 1], "__tuple__": true}],
                 "feature_extraction__type_dep_file_name":
-              ["/Users/ezgidaldal/sexism_custom_classifier/files/type_dependencies.pkl"],
+              ["/path/type_dependencies.pkl"],
                 "feature_selection__k":[1000, 5000, 13000]
             }
         },
@@ -56,7 +56,7 @@
             "param_grid": {
                 "feature_extraction__ngram_range": [{ "items":[1, 4], "__tuple__": true}],
                 "feature_extraction__type_dep_file_name":
-              ["/Users/ezgidaldal/sexism_custom_classifier/files/type_dependencies.pkl"],
+              ["/path/type_dependencies.pkl"],
                 "feature_selection__k":[5000, 25000, 50000]
             }
         },
@@ -66,7 +66,7 @@
             "feature_selection":true,
             "param_grid": {
                 "feature_extraction__embedding_file_name":
-                ["/Users/ezgidaldal/sexism_custom_classifier/files/doc_embeddings.pkl"],
+                ["/path/doc_embeddings.pkl"],
                 "feature_selection__k":[100, 350, 600]
             }
         }
