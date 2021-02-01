@@ -12,7 +12,7 @@ class PreprocessTypeDependency(BaseEstimator):
             upre=Preprocessing()
             
             text=upre.remove_emojis(text)
-            #text=upre.remove_hashtag(text)
+            text=upre.remove_hashtag(text)
             text=upre.remove_mention(text)
             text=upre.remove_rt(text)
             text=upre.remove_urls(text)
@@ -22,6 +22,7 @@ class PreprocessTypeDependency(BaseEstimator):
             text=upre.lower_text(text)
             text=upre.strip_text(text)
             text=upre.compress_words(text)
+            
             return text
         except Exception as e:
             print('text> {}'.format(text))

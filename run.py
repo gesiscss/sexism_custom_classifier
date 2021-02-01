@@ -19,6 +19,7 @@ import itertools
 from absl import app, flags
 import nltk
 nltk.download('vader_lexicon')
+nltk.download('stopwords')
 
 FLAGS = flags.FLAGS
 
@@ -48,6 +49,7 @@ class RunPipeline():
         self.train_domains=self.params.dict['train_domains'][0]
         self.test_domains=self.params.dict['test_domains'][0]
         self.all_domains=self.params.dict['all_domains']
+        self.feature_combination=self.params.dict['feature_combination']
         self.models=self.get_models()
         self.use_grid_search=self.params.dict['use_grid_search']
         self.results_df = pd.DataFrame(columns=['iteration','train_domain', 'test_domain', 'model_name', 'features', 
@@ -87,11 +89,13 @@ class RunPipeline():
                     
                     for f in features_set:
                         train_num=train_num+1
-                        features, param_grid_features=f['features'], f['param_grid']
-                        param_grid=param_grid_features
                         
+                        features, param_grid=f['features'], f['param_grid']
+                        
+                        print()
                         print('{}.{}/{} Running the pipeline for: {}, {}, {}'.format(
                             i, train_num, len(features_set), model_name, [k['comb_name'] for k in features], train_domain_name))
+                        print()
                         
                         # Step 3. Build Pipeline
                         pipeline=PipelineBuilder(features, model_name).build_pipeline()
@@ -112,11 +116,10 @@ class RunPipeline():
                             X_test, y_test=self.make_dataset.get_data_split(test_domain_name, splits, test=True, random_state=i)
                             y_test_ids=X_test.copy().reset_index()
                             
-                            
                             # Step 5. Predict
                             y_pred=gs.predict(X_test)
                             
-                            feature_dimensions = self.get_feature_dimensions(gs.best_estimator_)
+                            feature_dimensions = self.get_feature_dimensions(gs.best_estimator_, model_name)
                             #print(feature_dimensions)
                             
                             self.results_df=self.results_df.append({
@@ -145,15 +148,41 @@ class RunPipeline():
             
         return 'FINISHED'
     
-    def get_models_rq2(self):
-        return
-    
     def get_models(self):
         if self.all_domains:
+            #Research Question 2
             return self.get_models_rq2()
         else:
+            #Research Question 1
             return self.get_models_rq1()
+    
+    def get_models_rq2(self):
+        retVal={}
         
+        params_features=self.params.dict['features']
+        models=self.params.dict['models']
+        for k, v in models.items():
+            model_name=v['name'][0]
+            if model_name in [Model.GENDERWORD, Model.THRESHOLDCLASSIFIER]:
+                retVal[model_name]=[
+                    {'features': [{'name':model_name, 'comb_name':model_name, 'feature_selection':False}],
+                     'param_grid':self.hyperparams.dict[model_name]}]
+            elif model_name in [Model.LR, Model.SVM]:
+                best_features=v['best_features']
+                bf={}
+                for f in best_features:
+                    bf[f]={
+                    'features':{
+                        'name':params_features[f]['name'], 
+                        'feature_selection':params_features[f]['feature_selection']}, 
+                    'param_grid':params_features[f]['param_grid']
+                    }
+                
+                retVal[model_name]=self.get_feature_combinations(bf, model_name, comb_max=len(bf), comb_min=len(bf)-1)
+            else:
+                print('CNN RQ2 todo')
+        
+        return retVal
     
     def get_models_rq1(self):
         valid_models=[Model.LR, Model.SVM, Model.CNN, Model.GENDERWORD, Model.THRESHOLDCLASSIFIER]
@@ -172,7 +201,7 @@ class RunPipeline():
             else:
                 features=[
                     {'features':
-                     [{'name':'baseline',
+                     [{'name':name, 'comb_name':name,
                        'feature_selection':False}],
                      'param_grid':self.hyperparams.dict[name]}]
                 
@@ -197,7 +226,7 @@ class RunPipeline():
                 #print('elif  ', ''.join((Model.CNN, '_', name)))
                 param_grid_model=self.hyperparams.dict[''.join((Model.CNN, '_', name))]
                 features.append({
-                    'features':{'name':name, 'feature_selection':v['feature_selection']}, 
+                    'features':{'name':name, 'comb_name':name, 'feature_selection':v['feature_selection']}, 
                     'param_grid':{**v['param_grid'], **param_grid_model}
                 })
         
@@ -208,8 +237,12 @@ class RunPipeline():
         valid_features=[Feature.SENTIMENT, Feature.NGRAM, Feature.TYPEDEPENDENCY, Feature.BERTDOC]
         features=self.get_features(valid_features)
         
-        #Return feature combinations
-        return self.get_feature_combinations(features, model)
+        if self.feature_combination:
+            #Gets combination features
+            return self.get_feature_combinations(features, model, comb_max=len(features), comb_min=0)
+        else:
+            #Gets individual features for gridsearch over k
+            return self.get_feature_combinations(features, model, comb_max=1, comb_min=0)
     
     def get_features(self, valid_features):
         params_features=self.params.dict['features']
@@ -225,13 +258,12 @@ class RunPipeline():
          
         return features
     
-    def get_feature_combinations(self, features, model):
+    def get_feature_combinations(self, features, model, comb_max, comb_min=0):
         param_grid_model=self.hyperparams.dict[model]
         
         #1.Create index combinations
         comb_list=[]
-        feature_count=len(features)
-        for i in range(feature_count):
+        for i in range(comb_min, comb_max):
             comb_list.extend(list(itertools.combinations(list(features.keys()), (i+1))))
         
         #2.Create feature combination list by using index combinations
@@ -241,7 +273,7 @@ class RunPipeline():
             param_grid_features={}
     
             for f in combination:
-                #Prevent adding same features in a combination (e.g. ngram (1,1) and ngram(1,2))
+                #Prevent adding same features in a combination (e.g. ngram (1,1) and ngram (1,4))
                 if features[f]['features']['name'] in feature_names:
                     feature_names=[]
                     comb_feature_names=[]
@@ -266,23 +298,24 @@ class RunPipeline():
             param_grid_feature[name]=val
         return param_grid_feature
     
-    def get_feature_dimensions(self, best_estimator):
+    def get_feature_dimensions(self, best_estimator, model_name):
         feature_dimensions={}
         
-        total=best_estimator.steps[1][1].feature_dimension
+        total=best_estimator.steps[-1][1].feature_dimension
         feature_dimensions['total']=total
         
-        tl=best_estimator.steps[0][1].transformer_list
-        for p in tl:
-            steps=p[1].steps
-            #Includes feature selection
-            if len(steps) == 4:
-                feature_dimensions[p[0][2:]]={
+        if model_name in [Model.SVM, Model.LR]:
+            tl=best_estimator.steps[0][1].transformer_list
+            for p in tl:
+                steps=p[1].steps
+                #Includes feature selection
+                if len(steps) == 4:
+                    feature_dimensions[p[0][2:]]={
                     'dimension':steps[3][1].feature_dimension,
                     'reduced':steps[3][1].k
                 }
-            elif len(steps) == 3:
-                feature_dimensions[p[0][2:]]={
+                elif len(steps) == 3:
+                    feature_dimensions[p[0][2:]]={
                     'dimension':steps[2][1].feature_dimension
                 }
                 
