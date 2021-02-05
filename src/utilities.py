@@ -69,7 +69,7 @@ class Preprocessing():
         return re.sub(r'#\w+ ?', '', text)
     
     def remove_rt(self, text):
-        rt_pattern = re.compile('([^a-zA-Z0-9]|^)(rt|lrt|ht|cc)([^a-zA-Z0-9]|$)', flags=re.UNICODE)
+        rt_pattern = re.compile('([^a-zA-Z0-9]|^)(RT|rt)([^a-zA-Z0-9]|$)', flags=re.UNICODE)
         return re.sub(rt_pattern, '', text)
     
     def remove_urls(self, text):

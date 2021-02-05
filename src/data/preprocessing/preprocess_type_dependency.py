@@ -14,9 +14,9 @@ class PreprocessTypeDependency(BaseEstimator):
             text=upre.remove_emojis(text)
             text=upre.remove_hashtag(text)
             text=upre.remove_mention(text)
-            text=upre.remove_rt(text)
             text=upre.remove_urls(text)
-        
+            text=upre.remove_rt(text)
+            
             text=upre.remove_non_alnum(text)
             text=upre.remove_space(text)
             text=upre.lower_text(text)

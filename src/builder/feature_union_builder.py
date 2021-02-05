@@ -67,7 +67,8 @@ class FeatureUnionBuilder():
         features (list): Features that will be added to the pipeline
         
         Example:
-        >>>features = [{'name': 'sentiment', 'feature_selection': False}, {'name': 'ngram', 'feature_selection': True}]
+        >>>features = [{'name': 'sentiment', 'feature_selection': False, 'comb_name':'1_sentiment'},
+                       {'name': 'ngram', 'feature_selection': True, 'comb_name':'2_ngram'}]
         >>>get_transformer_list(features)
         '''
         transformer_list=[]

@@ -76,11 +76,12 @@ class BuildTypeDependencyFeature(BaseEstimator):
             features=''
             for governor, dep, dependent in triples:
                 if str(dep) not in ['punct']:
+                    new_dep=dep.replace(':', '_')
                     processed_governor=self.process(governor[0])
                     processed_dependent=self.process(dependent[0])
                     feature=''
                     if self.add_relation:
-                        feature = processed_governor + '_' +  dep + '_' + processed_dependent + ' '
+                        feature = processed_governor + '_' +  new_dep + '_' + processed_dependent + ' '
                     else:
                         feature = processed_governor + '_' + processed_dependent + ' '
                     features = features + feature
