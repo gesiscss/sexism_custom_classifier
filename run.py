@@ -50,6 +50,7 @@ class RunPipeline():
         self.test_domains=self.params.dict['test_domains'][0]
         self.all_domains=self.params.dict['all_domains']
         self.feature_combination=self.params.dict['feature_combination']
+        self.grid_search_cnn=True
         self.models=self.get_models()
         self.use_grid_search=self.params.dict['use_grid_search']
         self.results_df = pd.DataFrame(columns=['iteration','train_domain', 'test_domain', 'model_name', 'features', 
@@ -101,11 +102,15 @@ class RunPipeline():
                         pipeline=PipelineBuilder(features, model_name).build_pipeline()
                        
                         gs=pipeline
-                        if self.use_grid_search:
+                        
+                        if model_name == Model.CNN and self.grid_search_cnn == False:
+                            print('false ', model_name)
+                            #grid_search_cnn is set to False while training across datasets
+                            gs.set_params(**param_grid)
+                        else:
+                            print('true ', model_name, self.grid_search_cnn)
                             sf=StratifiedKFold(n_splits=5, random_state=0, shuffle=True)
                             gs=GridSearchCV(pipeline, param_grid=param_grid, cv=sf, scoring='f1_macro', n_jobs=-1)
-                        else:
-                            gs.set_params(**param_grid)
                         
                         # Step 4. Fit
                         gs.fit(X_train, y_train)
@@ -180,7 +185,19 @@ class RunPipeline():
                 
                 retVal[model_name]=self.get_feature_combinations(bf, model_name, comb_max=len(bf), comb_min=len(bf)-1)
             else:
-                print('CNN RQ2 todo')
+                self.grid_search_cnn = False
+                
+                best_features=v['best_features']
+                bf={}
+                for f in best_features:
+                    bf[f]={
+                    'features':{
+                        'name':params_features[f]['name'], 
+                        'feature_selection':params_features[f]['feature_selection']}, 
+                    'param_grid':params_features[f]['param_grid']
+                    }
+                
+                retVal[model_name]=self.get_cnn_features()
         
         return retVal
     
@@ -194,8 +211,6 @@ class RunPipeline():
             
             if name == Model.CNN:
                 features=self.get_cnn_features()
-                #elif name == Model.GENDERWORD or name == Model.THRESHOLDCLASSIFIER:
-                #    features=self.get_baseline_features()
             elif name == Model.SVM or name == Model.LR:
                 features=self.get_svm_and_logit_features(name)
             else:
@@ -205,33 +220,31 @@ class RunPipeline():
                        'feature_selection':False}],
                      'param_grid':self.hyperparams.dict[name]}]
                 
-            #models[name]={'features_set':features, 'param_grid_model':self.hyperparams.dict[name]}
             models[name]=features
-        #print('$$$$$ models   ', models)
+            
         return models
-    
-    #def get_baseline_features(self):
-    #    return [{'features':[{'name':'baseline', 'feature_selection':False}], 'param_grid':{}}]
     
     def get_cnn_features(self):
         params_features=self.params.dict['features']
-        
-        #valid_features=[Feature.TEXTVEC, Feature.BERTWORD]
         valid_features=[Feature.BERTWORD]
         
         features=[]
         for k, v in params_features.items():
             name=v['name']
             if name in valid_features:
-                #print('elif  ', ''.join((Model.CNN, '_', name)))
-                param_grid_model=self.hyperparams.dict[''.join((Model.CNN, '_', name))]
+                comb_name='_'.join((k, name))
+                                   
+                param_grid_feature=self.format_param_grid(comb_name, v['param_grid'])
+                param_grid_model=self.hyperparams.dict[Model.CNN]
+                
                 features.append({
-                    'features':{'name':name, 'comb_name':name, 'feature_selection':v['feature_selection']}, 
-                    'param_grid':{**v['param_grid'], **param_grid_model}
+                    'features':[{
+                        'name':name, 'comb_name':comb_name,
+                        'feature_selection':v['feature_selection'] }],
+                    'param_grid':{**param_grid_feature, **param_grid_model}
                 })
         
-        #features=self.get_features(valid_features)
-        return [{'features':[i['features']], 'param_grid':i['param_grid']} for i in features] 
+        return features
     
     def get_svm_and_logit_features(self, model):
         valid_features=[Feature.SENTIMENT, Feature.NGRAM, Feature.TYPEDEPENDENCY, Feature.BERTDOC]

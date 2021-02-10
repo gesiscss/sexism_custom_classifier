@@ -19,7 +19,7 @@ class CNN(BaseEstimator):
                  dropout_prob=0.5,          # 6.  Dropout Layer
                  optimizer="Adam",          # 7.  Create Model   (Adadelta, Adam)
                  print_model=False,         # build_model method 
-                 num_epochs=30,             # Fit method : estimator.fit
+                 num_epochs=100,             # Fit method : estimator.fit
                  batch_size=50,             # Fit method : estimator.fit
                  verbose=0                  # Fit method : estimator.fit 
                 ):
