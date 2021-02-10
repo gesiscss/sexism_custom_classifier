@@ -1,0 +1,63 @@
+{
+    "data_file":"/path/all_data_augmented.csv",
+    "iteration":[1],
+    "train_domains":[{ "items":["CM"], "__domain__": true}],
+    "test_domains":[{ "items":["CM"], "__domain__": true}],
+    "all_domains":false,
+    "use_grid_search":true,
+    "feature_combination":false,
+    "models":[{ "items":["LR"], "__model__": true}],
+    "features":
+    {
+        "3": 
+        { 
+            "name":{ "item":"NGRAM", "__feature__": true},
+            "feature_selection":true,
+            "param_grid": {
+                "feature_extraction__ngram_range": [{ "items":[1, 1], "__tuple__": true}],
+                "feature_selection__k":[500, 1000, 1300]
+            }
+        },
+        "5": 
+        { 
+            "name":{ "item":"TYPEDEPENDENCY", "__feature__": true},
+            "feature_selection":true,
+            "param_grid": {
+                "feature_extraction__ngram_range": [{ "items":[1, 1], "__tuple__": true}],
+                "feature_extraction__type_dep_file_name":
+              ["/path/type_dependencies.pkl"],
+                "feature_selection__k":[1000, 2500, 5000]
+            }
+        },
+        "7": 
+        { 
+            "name":{ "item":"NGRAM", "__feature__": true},
+            "feature_selection":true,
+            "param_grid": {
+                "feature_extraction__ngram_range": [{ "items":[1, 4], "__tuple__": true}],
+                "feature_selection__k":[5000, 7500, 10000]
+            }
+        },
+        "9": 
+        { 
+            "name":{ "item":"TYPEDEPENDENCY", "__feature__": true},
+            "feature_selection":true,
+            "param_grid": {
+                "feature_extraction__ngram_range": [{ "items":[1, 4], "__tuple__": true}],
+                "feature_extraction__type_dep_file_name":
+              ["/path/type_dependencies.pkl"],
+                "feature_selection__k":[5000, 15000, 20000]
+            }
+        },
+        "11":
+        {
+            "name":{ "item":"BERTDOC", "__feature__": true},
+            "feature_selection":true,
+            "param_grid": {
+                "feature_extraction__embedding_file_name":
+                ["/path/doc_embeddings.pkl"],
+                "feature_selection__k":[100, 350, 600]
+            }
+        }
+    }   
+}

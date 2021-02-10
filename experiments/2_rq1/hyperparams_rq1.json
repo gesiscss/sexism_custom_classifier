@@ -1,0 +1,31 @@
+{
+    "logistic_regression":
+    {
+        "model__estimator__C": [0.001,0.01,0.1,1,10,100],
+        "model__estimator__max_iter":[900000]
+    },
+    "svm":
+    {
+        "model__estimator__C": [0.001,0.01,0.1,1,10,100],
+        "model__estimator__kernel":["linear","poly", "rbf"],
+        "model__estimator__gamma":["scale"]
+    },
+    "cnn":
+    {
+        "model__estimator__num_filters": [50, 100],
+        "model__estimator__filter_sizes":[
+            { "items":[2,3,4], "__tuple__": true},
+            { "items":[3,4,5], "__tuple__": true},
+            { "items":[2,3,4,5,6], "__tuple__": true}
+        ],
+        "model__estimator__num_epochs": [100],
+        "model__estimator__batch_size": [50],
+        "model__estimator__print_model": [false],
+        "model__estimator__verbose":[0]
+    },
+    "gender_word":
+    {
+        "model__estimator__vocab_path":["/path/gender_words.txt"]
+    },
+    "threshold_classifier":{}
+}

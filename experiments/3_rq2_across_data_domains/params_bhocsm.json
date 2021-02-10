@@ -1,0 +1,86 @@
+{
+    "data_file":"/path/all_data_augmented.csv",
+    "iteration":[1,2,3,4,5],
+    "train_domains":[{ "items":["BHOCSM"], "__domain__": true}],
+    "test_domains":[{ "items":["BHO", "BHOM", "BHOCS", "BHOCSM", "C", "CM", "S"], "__domain__": true}],
+    "all_domains":true,
+    "use_grid_search":true,
+    "feature_combination":true,
+    "models":
+    {
+        "1":
+        {
+            "name":{ "items":["GENDERWORD"], "__model__": true}
+        },
+        "2":
+        {
+            "name":{ "items":["THRESHOLDCLASSIFIER"], "__model__": true}
+        },
+        "3":
+        {
+            "name":{ "items":["LR"], "__model__": true},
+            "best_features":["1", "2", "3"]
+        },
+        "4":
+        {
+            "name":{ "items":["SVM"], "__model__": true},
+            "best_features":["1", "4", "3"]
+        },
+        "5":
+        {
+            "name":{ "items":["CNN"], "__model__": true},
+            "best_features":["5"]
+        }
+    },
+    "features":
+    {
+        "1":
+        { 
+                    "name":{ "item":"NGRAM", "__feature__": true},
+                    "feature_selection":false,
+                    "param_grid":{
+                    "feature_extraction__ngram_range": [{ "items":[1, 4], "__tuple__": true}]
+                }
+        },
+        "2":
+        {
+                    "name":{ "item":"TYPEDEPENDENCY", "__feature__": true},
+                    "feature_selection":true,
+                    "param_grid": {
+                    "feature_extraction__ngram_range": [{ "items":[1, 4], "__tuple__": true}],
+                    "feature_extraction__type_dep_file_name":
+                  ["/path/type_dependencies.pkl"],
+                    "feature_selection__k":[5000]    
+                }
+        },
+        "3":
+        {
+            "name":{ "item":"BERTDOC", "__feature__": true},
+            "feature_selection":true,
+            "param_grid": {
+                "feature_extraction__embedding_file_name":
+                ["/path/doc_embeddings.pkl"],
+                "feature_selection__k":[600]
+            }
+        },
+        "4":
+        {
+                    "name":{ "item":"TYPEDEPENDENCY", "__feature__": true},
+                    "feature_selection":false,
+                    "param_grid": {
+                    "feature_extraction__ngram_range": [{ "items":[1, 4], "__tuple__": true}],
+                    "feature_extraction__type_dep_file_name":
+                  ["/path/type_dependencies.pkl"]
+                }
+        },
+        "5":
+        {
+            "name":{ "item":"BERTWORD", "__feature__": true},
+            "feature_selection":true,
+            "param_grid": {
+                "feature_extraction__embedding_file_name":
+                "/path/word_embeddings.pkl"
+            }
+        }
+    }
+}
