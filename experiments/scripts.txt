@@ -1,0 +1,82 @@
+#############SCRIPTS FOR 1_grid_search_k FOLDER############# 
+#Grid Search K on individual feature sets using Logistic Regression
+
+python run.py \
+	--params_file='experiments/1_grid_search_k/params_select_k_bho_bhom.json' \
+    --hyperparams_file='experiments/2_rq1/hyperparams_rq1.json'\
+    --file_name='select_k_bho_bhom'
+    
+python run.py \
+	--params_file='experiments/1_grid_search_k/params_select_k_bhocs.json' \
+    --hyperparams_file='experiments/2_rq1/hyperparams_rq1.json'\
+    --file_name='select_k_bho_bhocs'
+    
+python run.py \
+	--params_file='experiments/1_grid_search_k/params_select_k_bhocsm.json' \
+    --hyperparams_file='experiments/2_rq1/hyperparams_rq1.json'\
+    --file_name='select_k_bhocsm'
+
+python run.py \
+	--params_file='experiments/1_grid_search_k/params_select_k_c.json' \
+    --hyperparams_file='experiments/2_rq1/hyperparams_rq1.json'\
+    --file_name='select_k_c'
+
+python run.py \
+	--params_file='experiments/1_grid_search_k/params_select_k_cm.json' \
+    --hyperparams_file='experiments/2_rq1/hyperparams_rq1.json'\
+    --file_name='select_k_cm'
+
+#############SCRIPTS FOR 2_rq1 FOLDER############# 
+#Train and test all models using individual and combined features. 
+#Models trained and tested on the BHOCS dataset.
+#Best k parameter was used for the feature selection. 
+
+export PARAMS_FILE_RQ1='experiments/2_rq1/params_rq1.json'
+export HYPERPARAMS_FILE_RQ1='experiments/2_rq1/hyperparams_rq1.json'
+
+python run.py \
+	--params_file=$PARAMS_FILE_RQ1 \
+    --hyperparams_file=$HYPERPARAMS_FILE_RQ1 \
+    --file_name='results_rq1'
+
+#############SCRIPTS FOR 3_rq2_across_data_domains FOLDER#############
+#Train and test all models using the best performing feature set. 
+#Models trained and tested across the dataset combinations.
+
+export PARAMS_FILE_RQ2_BHO_BHOM='experiments/3_rq2_across_data_domains/params_bho_and_bhom.json'
+export PARAMS_FILE_RQ2_BHOCS='experiments/3_rq2_across_data_domains/params_bhocs.json'
+export PARAMS_FILE_RQ2_BHOCSM='experiments/3_rq2_across_data_domains/params_bhocsm.json'
+export PARAMS_FILE_RQ2_C='experiments/3_rq2_across_data_domains/params_c.json'
+export PARAMS_FILE_RQ2_CM='experiments/3_rq2_across_data_domains/params_cm.json'
+
+export HYPERPARAMS_FILE_RQ2='experiments/3_rq2_across_data_domains/hyperparams_rq2.json'
+
+#BHO and BHOM
+python run.py \
+	--params_file=$PARAMS_FILE_RQ2_BHO_BHOM \
+    --hyperparams_file=$HYPERPARAMS_FILE_RQ2 \
+    --file_name='bho_and_bhom'
+
+#BHOCS
+python run.py \
+	--params_file=$PARAMS_FILE_RQ2_BHOCS \
+    --hyperparams_file=$HYPERPARAMS_FILE_RQ2 \
+    --file_name='bhocs'
+
+#BHOCSM
+python run.py \
+	--params_file=$PARAMS_FILE_RQ2_BHOCSM \
+    --hyperparams_file=$HYPERPARAMS_FILE_RQ2 \
+    --file_name='bhocsm'
+
+#C
+python run.py \
+	--params_file=$PARAMS_FILE_RQ2_C \
+    --hyperparams_file=$HYPERPARAMS_FILE_RQ2 \
+    --file_name='c'
+    
+#CM
+python run.py \
+	--params_file=$PARAMS_FILE_RQ2_CM \
+    --hyperparams_file=$HYPERPARAMS_FILE_RQ2 \
+    --file_name='cm'
