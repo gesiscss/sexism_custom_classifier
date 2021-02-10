@@ -1,0 +1,29 @@
+{
+    "data_file":"/path/all_data_augmented.csv",
+    "iteration":[1,2,3,4,5],
+    "train_domains":[{ "items":["BHOCS"], "__domain__": true}],
+    "test_domains":[{ "items":["BHOCS"], "__domain__": true}],
+    "all_domains":false,
+    "use_grid_search":true,
+    "feature_combination":true,
+    "models":[{ "items":["LR"], "__model__": true}],
+    "features":
+    {
+        "1": 
+        { 
+            "name":{ "item":"SENTIMENT", "__feature__": true},
+            "feature_selection":false,
+            "param_grid":{ 
+                "feature_extraction__score_names": [["neu", "compound"]]
+            }
+        },
+        "2": 
+        { 
+            "name":{ "item":"NGRAM", "__feature__": true},
+            "feature_selection":false,
+            "param_grid": {
+                "feature_extraction__ngram_range": [{ "items":[1, 1], "__tuple__": true}]
+            }
+        }
+    }   
+}

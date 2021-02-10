@@ -24,7 +24,7 @@ Sexism custom classifier is implemented to detect sexism automatically in the fi
 
 ## Experiments
 
-This example code replicates the results.
+This example code trains Logistic Regression on top of sentiment and uni-gram features. To replicate the results, run the scripts in the 'experiments/scripts.txt'
 
 ```shell
 export PARAMS_FILE='experiments/params.json'

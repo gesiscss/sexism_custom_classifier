@@ -104,11 +104,9 @@ class RunPipeline():
                         gs=pipeline
                         
                         if model_name == Model.CNN and self.grid_search_cnn == False:
-                            print('false ', model_name)
                             #grid_search_cnn is set to False while training across datasets
                             gs.set_params(**param_grid)
                         else:
-                            print('true ', model_name, self.grid_search_cnn)
                             sf=StratifiedKFold(n_splits=5, random_state=0, shuffle=True)
                             gs=GridSearchCV(pipeline, param_grid=param_grid, cv=sf, scoring='f1_macro', n_jobs=-1)
                         
