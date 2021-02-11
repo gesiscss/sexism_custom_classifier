@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Sexism custom classifier is implemented to detect sexism automatically in the field of natural language processing. In this work, we used a dataset from [Samory et al. (2020)](https://arxiv.org/abs/2004.12764). We will train three models on top of the different feature sets. The aim of the experiments is to answer two research questions:  
+Sexism custom classifier is implemented to detect sexism automatically in the field of natural language processing. In this work, the dataset from [Samory et al. (2020)](https://arxiv.org/abs/2004.12764) was used to train three models on top of four different feature sets (both individual and combinations). The aim of the experiments is to answer two research questions:  
 
 * What is the informativeness of different feature sets on the sexism detection task?
 * What are the improvements on the sexism classifiers’ performance when different feature sets are introduced?

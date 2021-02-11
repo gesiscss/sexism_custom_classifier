@@ -62,27 +62,30 @@ class RunPipeline():
     @execution_time_calculator
     def run(self):
         '''Runs the steps below.
-        Step 1. Read data
-        Step 2. Prepare train split for train_domain
-        Step 3. Build Pipeline
-        Step 4. Fit
-        Step 5. Predict
-        Step 6. Get and save classification report
+        Step 1. Prepare parameters using "params.json" and "hyperparams.json" files.
+        Step 2. Read data
+        Step 3. Prepare train and test splits for seven domains.
+        Step 4. Build Pipeline
+        Step 5. Fit
+        Step 6. Predict
+        Step 7. Get and save classification report
         '''
+        
+        # Step 1. Prepare parameters using "params.json" and "hyperparams.json" files.
         self.prepare_parameters()
         
-        # Step 1. Read data
+        # Step 2. Read data
         data = self.make_dataset.read_data(self.data_file)
         
         for i in self.iteration:
             
+            # Step 3. Prepare train and test splits for seven domains.
             splits=self.make_dataset.prepare_data_splits(data, random_state=i)
             
             for td in self.train_domains:
                 train_domain_name=td['name']
                 train_domain=td['value']
                 
-                #Step 2. Prepare train split for train_domain
                 X_train, y_train= self.make_dataset.get_data_split(train_domain_name, splits, train=True, random_state=i)
                         
                 for model_name, features_set in self.models.items():
@@ -98,7 +101,7 @@ class RunPipeline():
                             i, train_num, len(features_set), model_name, [k['comb_name'] for k in features], train_domain_name))
                         print()
                         
-                        # Step 3. Build Pipeline
+                        # Step 4. Build Pipeline
                         pipeline=PipelineBuilder(features, model_name).build_pipeline()
                        
                         gs=pipeline
@@ -110,7 +113,7 @@ class RunPipeline():
                             sf=StratifiedKFold(n_splits=5, random_state=0, shuffle=True)
                             gs=GridSearchCV(pipeline, param_grid=param_grid, cv=sf, scoring='f1_macro', n_jobs=-1)
                         
-                        # Step 4. Fit
+                        # Step 5. Fit
                         gs.fit(X_train, y_train)
                         
                         for test_domain in self.test_domains:
@@ -119,11 +122,10 @@ class RunPipeline():
                             X_test, y_test=self.make_dataset.get_data_split(test_domain_name, splits, test=True, random_state=i)
                             y_test_ids=X_test.copy().reset_index()
                             
-                            # Step 5. Predict
+                            # Step 6. Predict
                             y_pred=gs.predict(X_test)
                             
                             feature_dimensions = self.get_feature_dimensions(gs.best_estimator_, model_name)
-                            #print(feature_dimensions)
                             
                             self.results_df=self.results_df.append({
                                                   'iteration':'.'.join((str(i), str(train_num))),
@@ -137,7 +139,7 @@ class RunPipeline():
                                                   ignore_index=True)
                             
                             
-            # Step 6. Get and save classification report  
+            # Step 7. Get and save classification report  
             metrics_df=self.results_df.apply(lambda r: self.get_classification_report(r['y_test'], r['y_pred']), axis=1)
         
             results_df=pd.concat((self.results_df, metrics_df), axis=1)
